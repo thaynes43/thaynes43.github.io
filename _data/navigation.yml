@@ -5,8 +5,8 @@ navbar:
         url: /test-page/
   - title: Tutorials
     children:
-      - title: Test Doc
-        url: /docs/test-doc/
+      - title: Hosting This Site
+        url: /docs/github-pages/
   - title: Cheat Sheets
     children:
       - title: Kubernetes
