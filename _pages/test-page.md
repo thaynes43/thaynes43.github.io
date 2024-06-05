@@ -1,6 +1,6 @@
 ---
-permalink: /test-page/
 title: "Test Page"
+permalink: /test-page/
 ---
 
 Test page!

@@ -1,3 +1,4 @@
 ---
-title: "Kubernetes Cheat Sheet"
+title: Kubernetes Cheat Sheet
+permalink: /cheatsheets/kube-commands/
 ---
