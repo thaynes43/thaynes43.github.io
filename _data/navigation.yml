@@ -1,9 +1,9 @@
 navbar:
   - title: The Lab
     children:
-      - title: Test Page
-        url: /test-page/
-  - title: Tutorials
+      - title: Overview
+        url: /lab-overview/
+  - title: Adventures
     children:
       - title: Hosting This Site
         url: /docs/github-pages/
