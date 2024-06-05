@@ -1,0 +1,13 @@
+navbar:
+  - title: The Lab
+    children:
+      - title: Test Page
+        url: /test-page/
+  - title: Tutorials
+    children:
+      - title: Test Doc
+        url: /docs/test-doc/
+  - title: Cheat Sheets
+    children:
+      - title: Kubernetes
+        url: /cheatsheets/kube-commands/

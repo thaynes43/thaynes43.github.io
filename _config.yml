@@ -28,11 +28,16 @@ twitter_username: thayneslab
 github_username:  thaynes43
 
 # Build settings
-theme: minima
+#theme: minima
 #remote_theme: pages-themes/slate@v0.2.0
+#theme: jekyll-theme-midnight
+remote_theme: mmistakes/minimal-mistakes@4.26.1
+minimal_mistakes_skin: dark # "default", "air", "aqua", "contrast", "dark", "dirt", "neon", "mint", "plum", "sunrise"
 plugins:
   - jekyll-feed
-#  - jekyll-remote-theme
+  - jekyll-remote-theme
+  - jekyll-include-cache
+  - jekyll-paginate
 
 # Exclude from processing.
 # The following items will not be processed, by default.
@@ -53,3 +58,86 @@ plugins:
 #   - vendor/cache/
 #   - vendor/gems/
 #   - vendor/ruby/
+
+# Reading Files
+include:
+  - .htaccess
+  - _pages
+exclude:
+  - "*.sublime-project"
+  - "*.sublime-workspace"
+  - vendor
+  - .asset-cache
+  - .bundle
+  - .jekyll-assets-cache
+  - .sass-cache
+  - assets/js/plugins
+  - assets/js/_main.js
+  - assets/js/vendor
+  - Capfile
+  - CHANGELOG
+  - config
+  - Gemfile
+  - Gruntfile.js
+  - gulpfile.js
+  - LICENSE
+  - log
+  - node_modules
+  - package.json
+  - Rakefile
+  - README
+  - tmp
+keep_files:
+  - .git
+  - .svn
+encoding: "utf-8"
+markdown_ext: "markdown,mkdown,mkdn,mkd,md"
+
+social:
+  type: Person # Person or Organization (defaults to Person)
+  name: Tom Haynes # If the user or organization name differs from the site's name
+  links:
+    - "https://twitter.com/yourTwitter"
+    - "https://www.facebook.com/yourFacebook"
+    - "https://instagram.com/yourProfile"
+    - "https://www.linkedin.com/in/yourprofile"
+
+defaults:
+  # _pages
+  - scope:
+      path: _pages
+      type: pages
+    values:
+      layout: single
+      author_profile: true
+      sidebar:
+        nav: navbar  
+  # _posts
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: single
+      read_time: true
+      comments: true
+      share: false
+      related: true
+  # docs
+  - scope:
+      path: docs
+      type: pages
+    values:
+      layout: single
+      sidebar:
+        nav: navbar
+  # cheatsheets
+  - scope:
+      path: cheatsheets
+      type: pages
+    values:
+      layout: single
+      sidebar:
+        nav: navbar
+
+enable_copy_code_button: true
+#paginate: 5
