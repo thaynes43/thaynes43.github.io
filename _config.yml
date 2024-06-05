@@ -28,7 +28,7 @@ twitter_username: thayneslab
 github_username:  thaynes43
 
 # Build settings
-theme: minima
+theme: slate
 plugins:
   - jekyll-feed
 
