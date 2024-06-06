@@ -11,3 +11,5 @@ navbar:
     children:
       - title: Kubernetes
         url: /cheatsheets/kube-commands/
+      - title: Infrastructure
+        url: /cheatsheets/infra-commands/

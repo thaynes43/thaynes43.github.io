@@ -3,11 +3,11 @@ title: Hosting with GitHub Pages
 permalink: /docs/github-pages/
 ---
 
-This site was hosted with GitHub pages using an $11/year domain from cloudflare. That's the total cost of the site! You can see the source code for the site here: https://github.com/thaynes43/thaynes43.github.io
+This site was hosted with GitHub pages using an $11/year domain from cloudflare. That's the total cost of the site! You can see the source code for the site on [GitHub](https://github.com/thaynes43/thaynes43.github.io).
 
 ## Getting Here
 
-I initially began documenting my homelab on [this gist](https://gist.github.com/thaynes43/6135cdde0b228900d70ab49dfe386f91) but wanted something that had a bit more sty;le was still markdown driven. I'm a big fan of keeping the documentation with the code so the versioning is in lockstep but since I wasn't documenting anything in particular I had a bit more flexibility. After googling around a bit I came up with the following options:
+I initially began documenting my homelab on [this gist](https://gist.github.com/thaynes43/6135cdde0b228900d70ab49dfe386f91) but wanted something that had a bit more style was still markdown driven. I'm a big fan of keeping the documentation with the code so the versioning is in lockstep but since I wasn't documenting anything in particular I had a bit more flexibility. After googling around a bit I came up with the following options:
 
 * [mkdocs](https://www.mkdocs.org/)
 * [docsify.js](https://docsify.js.org/)
@@ -26,7 +26,7 @@ I followed [GitHub's docs](https://docs.github.com/en/pages/getting-started-with
 
 ![initial commit]({{ site.url }}/images/github-pages-initial-commit.png)
 
-And like magic I could hit the site from https://thaynes43.github.io! 
+And like magic I could hit the site from [https://thaynes43.github.io](https://thaynes43.github.io)!
 
 ## Adding a Custom Domain
 
