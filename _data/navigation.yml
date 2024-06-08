@@ -7,6 +7,10 @@ navbar:
     children:
       - title: Hosting This Site
         url: /docs/github-pages/
+      - title: Adding an MS-01 Node
+        url: /docs/adding-ms01-node/
+      - title: TODO Backup Strategy
+        url: /docs/backup-strat/
   - title: Cheat Sheets
     children:
       - title: Kubernetes

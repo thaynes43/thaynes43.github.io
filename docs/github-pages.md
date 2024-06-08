@@ -24,7 +24,7 @@ Afterword I had some buyers remorse as there were many "start from scratch" opti
 
 I followed [GitHub's docs](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site) on creating the site and ended up with a repo with just an index.html with "Hello World" in it:
 
-![initial commit]({{ site.url }}/images/github-pages-initial-commit.png)
+![initial commit]({{ site.url }}/images/hosting/github-pages-initial-commit.png)
 
 And like magic I could hit the site from [https://thaynes43.github.io](https://thaynes43.github.io)!
 
@@ -36,7 +36,7 @@ After purchasing the domain configuring it was fairly straightforward following 
 
 Cloudflare DNS worked with these entries:
 
-![initial commit]({{ site.url }}/images/cloudflare-dns-example.png)
+![cloudflare DNS example]({{ site.url }}/images/hosting/cloudflare-dns-example.png)
 
 However, I've seen a CNAME used for www instead that points to the root domain. Not sure which is best there.
 
