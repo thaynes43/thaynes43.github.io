@@ -9,6 +9,8 @@ navbar:
         url: /docs/github-pages/
       - title: Adding an MS-01 Node
         url: /docs/adding-ms01-node/
+      - title: Hackin Tosh
+        url: /docs/hackin-tosh/
       - title: TODO Backup Strategy
         url: /docs/backup-strat/
   - title: Cheat Sheets
