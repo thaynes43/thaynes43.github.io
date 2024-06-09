@@ -12,6 +12,8 @@ I initially began documenting my homelab on [this gist](https://gist.github.com/
 * [mkdocs](https://www.mkdocs.org/)
 * [docsify.js](https://docsify.js.org/)
 * [sphinx](https://www.sphinx-doc.org/en/master/)
+* [joplin](https://joplinapp.org/)
+* [CodiMD](https://codimd.web.cern.ch/)
 * [jekyll](https://jekyllrb.com/) PLUS [pages.github](https://pages.github.com/)
 
 I didn't look any further than the last bullet, the simplicity of hosting on GitHub Pages instead of from my own cluster won me over.
@@ -64,7 +66,7 @@ Though I never looked up what was in that bundle...
 From here I stumbled with what was in the GitHub doc a bit but I never got things working until I looked elsewhere. 
 
 * [https://github.com/sfarrens/jekyll_tutorial/tree/master?tab=readme-ov-file#Customising-your-website](https://github.com/sfarrens/jekyll_tutorial/tree/master?tab=readme-ov-file#Customising-your-website)
-* [https://github.com/yshmarov/yshmarov.github.io](https://github.com/yshmarov/yshmarov.github.io)
+* [https://github.com/yshmarov/yshmarov.github.io](https://github.com/yshmarov/yshmarov.github.io) which seemed to map to this [blog](https://blog.corsego.com/)
 
 The main things I had wrong from the GitHub doc were:
 

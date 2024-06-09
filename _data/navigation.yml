@@ -3,6 +3,8 @@ navbar:
     children:
       - title: Overview
         url: /lab-overview/
+      - title: Backlog
+        url: /backlog/
   - title: Adventures
     children:
       - title: Hosting This Site
