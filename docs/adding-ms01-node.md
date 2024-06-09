@@ -121,13 +121,13 @@ Skipping this for now but I did do it for the first three MS-01's then gave up o
 
 ## Configuring Additional Network Adapters
 
-To add to the Ceph cluster we need the second SPF+ to have a static IP on the Ceph VLAN. I am also going to configure one of the 2.5 Gbe ports so it's available if needed down the road (ran out of ports on the switch for the second one).
+To add to the Ceph cluster we need the second SPF+ to have a static IP on the Ceph VLAN. I am also going to configure one of the 2.5 Gbe ports so it's available if needed down the road (ran out of ports on the switch for the second one). This also needs a VLAN.
 
 Go to Datacenter -> <Machine Name> -> System -> Network and enable autostart for everything (this makes them show up on my router's management portal). Click Apply Configuration for the changes to take effect. You may get a warning about something not installed that's needed for these changes to work without rebooting. Install that if you do.
 
 ![microcode update diff]({{ site.url }}/images/proxmox/network-autostart.png)
 
-Now we need an IP for the second SFP+ and the 2.5GBe networks. Since Ceph was on a VLAN it was easy to avoid IP conflicts but the 2.5Gb needed to avoid any that were in use. 
+Now we need an IP for the second SFP+ and the 2.5GBe networks. Since they are on VLANs it should be easy to avoid IP conflicts unless you have a ton of devices.
 
 For Ceph which was the `enp2s0f1np1` adapter I configured:
 
