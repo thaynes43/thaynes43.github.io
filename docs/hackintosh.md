@@ -1,6 +1,6 @@
 ---
-title: Backup Strategy for Everything (so far) 
-permalink: /docs/hackin-tosh/
+title: MacOS VM
+permalink: /docs/hackintosh/
 ---
 
 ## Motivation
@@ -55,21 +55,24 @@ Back on my desktop I can now select the mac VM with it's default name that I sho
 
 ## Fixing Things Up
 
-https://github.com/thenickdude/KVM-Opencore/releases?ref=klabsdev.com -> download something like `OpenCoreEFIFolder-v21.zip` from release
+We need a files first:
 
-https://github.com/corpnewt/MountEFI?ref=klabsdev.com -> clone
 
-`git clone` on the http link popped up a nice window for installing `git` instead of just saying it wasn't found so I went ahead and did that. Then I ran the `git clone` command again to pull the repo.
 
-Running these commands:
+1. Download something like `OpenCoreEFIFolder-v21.zip` from these [releases](https://github.com/thenickdude/KVM-Opencore/releases?ref=klabsdev.com)
+2. Clone [this repo](https://github.com/corpnewt/MountEFI?ref=klabsdev.com)
+
+When I ran `git clone` on the http link a nice window for installing `git`popped up since the macos doesn't come with it. Then I ran the `git clone` command again to pull the repo.
+
+Now we need to run the first one:
 
 ```
-cd ~/Downloads/MountEFI-update
+cd ~/Downloads/MountEFI
 chmod +x MountEFI.command
 ./MountEFI.command
 ```
 
-Got me this popup:
+This resulted in a popup:
 
 ![mount efi]({{ site.url }}/images/mac/mount-efi.png)
 
@@ -238,7 +241,7 @@ For each node you just need to go to `System` -> `Network` and select the enp90s
 
 Yes! The eagle has landed:
 
-![reconfigure ips for vlan]({{ site.url }}/images/unifi/mac01-migrated.png)
+![reconfigure ips for vlan]({{ site.url }}/images/proxmox/mac01-migrated.png)
 
 ## iGPU
 
