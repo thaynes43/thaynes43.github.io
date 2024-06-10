@@ -21,3 +21,5 @@ Fair warning, I do not plan to keep anything up to date. If I have to go back an
 Oh, and here's the latest look at hayneslab!
 
 ![June 2024 Rack]({{ site.url }}/images/hardware/june-2024-lab.png)
+
+Thanks for reading!
