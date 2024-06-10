@@ -33,7 +33,6 @@ The rest of this page is things I may or may not take on but don't want to lose 
 #### Finish Backup Strat
 
 * See [backup-strat]({{ site.url }}/docs/backup-strat/)
-TODO verify link works
 
 #### Figure Out Radosgw
 

@@ -5,6 +5,13 @@ navbar:
         url: /lab-overview/
       - title: Backlog
         url: /backlog/
+      - title: Hardware
+        children:
+          - title: HaynesTower
+            url: /hardware/haynestower/     
+          - title: MS-01
+            url: /hardware/ms-01/
+
   - title: Adventures
     children:
       - title: Hosting This Site
@@ -15,6 +22,7 @@ navbar:
         url: /docs/hackintosh/
       - title: TODO Backup Strategy
         url: /docs/backup-strat/
+
   - title: Cheat Sheets
     children:
       - title: General Linux

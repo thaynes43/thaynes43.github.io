@@ -9,7 +9,7 @@ Much of what I learned that I go over here is thanks to "scyto" who wrote this [
 
 ## Assembly
 
-TODO - I'll add a hardware focused page on what went into assembling these
+For parts and service head over to [this guide]({{ site.url }}/hardware/ms-01/) for an in depth look at getting an MS-01 assembled and running.
 
 Since these suckers all look the same make sure you label each one!
 
