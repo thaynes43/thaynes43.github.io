@@ -1,17 +1,41 @@
-navbar:
+main:
+  - title: The Lab
+    url: /lab-overview/
+  - title: Adventures
+    url: /lab-overview/
+  - title: Cheat Sheets
+    url: /lab-overview/       
+  #- title: "Posts"
+  #  url: /year-archive/
+  #- title: "Categories"
+  #  url: /categories/
+  #- title: "Tags"
+  #  url: /tags/
+  #- title: "Pages"
+  #  url: /page-archive/
+  #- title: "Collections"
+  #  url: /collection-archive/
+  #- title: "External Link"
+  #  url: https://google.com
+  #  target: _blank
+
+labnav:
   - title: The Lab
     children:
       - title: Overview
         url: /lab-overview/
       - title: Backlog
         url: /backlog/
-      - title: Hardware
-        children:
-          - title: HaynesTower
-            url: /hardware/haynestower/     
-          - title: MS-01
-            url: /hardware/ms-01/
 
+hardwarenav:
+  - title: Hardware
+    children:
+      - title: HaynesTower
+        url: /hardware/haynestower/     
+      - title: MS-01
+        url: /hardware/ms-01/ 
+
+adventuresnav:
   - title: Adventures
     children:
       - title: Hosting This Site
@@ -23,6 +47,7 @@ navbar:
       - title: TODO Backup Strategy
         url: /docs/backup-strat/
 
+sheetsnav:
   - title: Cheat Sheets
     children:
       - title: General Linux

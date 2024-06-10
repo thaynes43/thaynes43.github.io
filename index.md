@@ -3,7 +3,11 @@ layout: home
 author_profile: true
 share: false
 sidebar:
-  nav: navbar
+  nav: 
+    - labnav
+    - hardwarenav
+    - adventuresnav
+    - sheetsnav
 ---
 
 Hello! I'm Tom and this is a website I use to muse over recent adventures in the home lab.

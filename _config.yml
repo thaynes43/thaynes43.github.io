@@ -111,7 +111,7 @@ defaults:
       layout: single
       author_profile: true
       sidebar:
-        nav: navbar  
+        nav: labnav
   # _posts
   - scope:
       path: ""
@@ -129,7 +129,8 @@ defaults:
     values:
       layout: single
       sidebar:
-        nav: navbar
+        nav: adventuresnav
+
   # cheatsheets
   - scope:
       path: cheatsheets
@@ -137,7 +138,7 @@ defaults:
     values:
       layout: single
       sidebar:
-        nav: navbar
+        nav: sheetsnav
   # hardware
   - scope:
       path: hardware
@@ -145,7 +146,7 @@ defaults:
     values:
       layout: single
       sidebar:
-        nav: navbar
+        nav: hardwarenav
 
 enable_copy_code_button: true
 #paginate: 5
