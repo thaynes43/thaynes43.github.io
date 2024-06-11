@@ -9,11 +9,11 @@ Ordered on [Amazon](https://www.amazon.com/dp/B09Y7358KJ?ref=ppx_yo2ov_dt_b_prod
 
 ### The Easy Part
 
-I decided to install an Radeon RX 6400 in one of the nodes to get a feel for how it'd perform, fit, and how hot it'd run. O
+I decided to install an Radeon RX 6400 in one of the nodes to get a feel for how it'd perform, fit, and how hot it'd run. TODO update the hardware doc with the installation and link from here.
 
 ### The Nightmare
 
-ne MAJOR thing I missed is the network adapters my proxmox node was relying on would have their names change after installing the GPU. This drove me crazy for a bit as I was looking for an MS-01 specific issue. Once I searched for "PROXMOX BROKE AFTER I DID A GPU THING" it was pretty clear a lot of folks didn't realize this either...
+Tne MAJOR thing I missed is the network adapters my proxmox node was relying on would have their names change after installing the GPU. This drove me crazy for a bit as I was looking for an MS-01 specific issue. Once I searched for "PROXMOX BROKE AFTER I DID A GPU THING" it was pretty clear a lot of folks didn't realize this either...
 
 To fix fine the new adapters:
 
@@ -136,13 +136,11 @@ I think it needs a reboot after. The guide says to run `reset` which just clears
 
 Seems too easy but this is what I came up with:
 
-![amd gpu dry run]({{ site.url }}/images/builds/proxmox/amd-gpu-dry-run.png)
+![amd gpu dry run]({{ site.url }}/images/proxmox/amd-gpu-dry-run.png)
 
 The hackintosh lost it's shit at first but rebooted just fine after. You can tell adding the GPU has stressed it out. 
 
-No dice, need more args...
-
-From [the master](https://www.nicksherlock.com/2018/11/my-macos-vm-proxmox-setup/)
+No dice, going to see how [the master](https://www.nicksherlock.com/2018/11/my-macos-vm-proxmox-setup/) did it.
 
 `nano /etc/pve/qemu-server/112.conf`
 
@@ -179,7 +177,9 @@ update-initramfs -k all -u
 reboot
 ```
 
-### PIVOT to windows for a sec
+Still didn't work. 
+
+### PIVOT to Windows
 
 [The reddit guide](https://www.reddit.com/r/homelab/comments/b5xpua/the_ultimate_beginners_guide_to_gpu_passthrough/) walks through on windows and I can manage that a bit better to get my bearings.
 
@@ -191,11 +191,11 @@ For installing the VM I loosely followed [these steps](https://www.wundertech.ne
 
 After going through the motions of installing Windows offline I was in. I set up nomachine and RDP so I could disable the virtual display in proxmox via `Hardware` -> `Display` -> `None`. After doing so nomachine no longer worked so I assume this relies on a display. RDP, however, not only worked but AMD's driver software picked up the card no problem:
 
-![amd detected]({{ site.url }}/images/builds/windows/amd-detected.png)
+![amd detected]({{ site.url }}/images/windows/amd-detected.png)
 
 Even better, after installing the drivers `nomachine` worked again! And unlike RDP I wasn't constrained to an upscaled resolution, I could crank this baby up to 4k!
 
-![namachine 4k]({{ site.url }}/images/builds/windows/namachine-4k.png)
+![namachine 4k]({{ site.url }}/images/windows/namachine-4k.png)
 
 However, this might be thanks to the [dummy plug](https://www.amazon.com/gp/product/B06XSZR7CG/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1) I stuck in when troubleshooting the macos VM.
 
@@ -203,17 +203,17 @@ Before going any further I activated windows using my a key from what use to be 
 
 Since that was taking forever I decided to give a lightweight offline game a try. I use `nomachine` for everything and this is about the most responsive I've seen it. 
 
-![hades vm]({{ site.url }}/images/builds/windows/hades-vm.png)
+![hades vm]({{ site.url }}/images/windows/hades-vm.png)
 
 Now that's just a 2D game so I wanted to really push it. For the final boss I chose...
 
-![final boss]({{ site.url }}/images/builds/windows/final-boss.png)
+![final boss]({{ site.url }}/images/windows/final-boss.png)
 
 TODO do [this](https://pve.proxmox.com/wiki/Qemu-guest-agent) for windows 
 
 Well the final boss was playable but even on high settings I seemed to be missing textures:
 
-![final boss goopy]({{ site.url }}/images/builds/windows/final-boss-goopy.png)
+![final boss goopy]({{ site.url }}/images/windows/final-boss-goopy.png)
 
 Enough distractions, time to go install some AMD drivers on a macos VM.
 
@@ -244,9 +244,11 @@ Last login: Tue Jun 11 00:46:25 2024
 thaynes@mac02 ~ %
 ```
 
-However, now nomachine can't find a desktop (duh!)
+However, now nomachine can't find a desktop (what desktop!)
 
-![no desktop]({{ site.url }}/images/builds/mac/no-desktop.png)
+![no desktop]({{ site.url }}/images/mac/no-desktop.png)
+
+Going back to my VM config I'll poke at a few more settings:
 
 ```
 args: -device isa-applesmc,osk="ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc" -smbios type=2 -device usb-kbd,bus=ehci.0,port=2 -global nec-usb-xhci.msi=off -global ICH9-LPC.acpi-pci-hotplug-with-bridge-support=off -cpu host,vendor=GenuineIntel,+invtsc,+hypervisor,kvm=on,vmware-cpuid-freq=on
@@ -272,12 +274,19 @@ vga: std,memory=512
 virtio0: vm-disks:vm-112-disk-1,cache=unsafe,discard=on,iothread=1,size=256G
 vmgenid: 89085a0f-8b1a-4de2-976e-edd86c9b0d09
 ```
-Change `cpu` to `cpu: host,hidden=1,flags=+pcid`
+
+I changed `cpu` to `cpu: host,hidden=1,flags=+pcid`
 Add `args: -cpu '...+kvm_pv_unhalt,+kvm_pv_eoi,kvm=off'` (`kvm=on` was set before)
+
+Here's what Nick man had:
 
 ```
 args: -device isa-applesmc,osk="..." -smbios type=2 cpu host,kvm=on,vendor=GenuineIntel,+kvm_pv_unhalt,+kvm_pv_eoi,+hypervisor,+invtsc,+pdpe1gb,check -smp 32,sockets=2,cores=8,threads=2 -device 'pcie-root-port,id=ich9-pcie-port-6,addr=10.1,x-speed=16,x-width=32,multifunction=on,bus=pcie.0,port=6,chassis=6' -device 'vfio-pci,host=0000:0a:00.0,id=hostpci5,bus=ich9-pcie-port-6,addr=0x0,x-pci-device-id=0x10f6,x-pci-sub-vendor-id=0x0000,x-pci-sub-device-id=0x0000' -global ICH9-LPC.acpi-pci-hotplug-with-bridge-support=off
 ```
 
-Then I found [this](https://dortania.github.io/GPU-Buyers-Guide/modern-gpus/amd-gpu.html) and I think I'm screwed! 
+But still no dice. My main suspicion was that I've been following guides for people who plug their peripherals right into the devices passed the the VM. But then I found [this](https://dortania.github.io/GPU-Buyers-Guide/modern-gpus/amd-gpu.html) and I learned that the RX 6400 didn't cut the mustard. I did what any reasonable human being would do and bought an RX 6800 but that'll have to wait for the MEGA AI SERVER.
+
+## RX 6800
+
+Coming soon...
 
