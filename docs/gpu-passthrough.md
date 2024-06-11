@@ -1,5 +1,5 @@
 ---
-title: Radeon RX 6400
+title: GPU Passthrough w/ Radeon RX 6400
 permalink: /hardware/rx6400/
 ---
 

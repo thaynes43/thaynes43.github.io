@@ -2,9 +2,11 @@ main:
   - title: The Lab
     url: /lab-overview/
   - title: Adventures
-    url: /lab-overview/
+    url: /docs/adventures-index/
+  - title: Hardware
+    url: /hardware/hardware-index/
   - title: Cheat Sheets
-    url: /lab-overview/       
+    url: /cheatsheets/cheatsheets-index/
   #- title: "Posts"
   #  url: /year-archive/
   #- title: "Categories"
@@ -19,6 +21,18 @@ main:
   #  url: https://google.com
   #  target: _blank
 
+homenav:
+  - title: Haynes Lab
+    children:
+      - title: The Lab
+        url: /lab-overview/
+      - title: Adventures
+        url: /docs/adventures-index/
+      - title: Hardware
+        url: /hardware/hardware-index/
+      - title: Cheat Sheets
+        url: /cheatsheets/cheatsheets-index/
+
 labnav:
   - title: The Lab
     children:
@@ -29,16 +43,16 @@ labnav:
 
 hardwarenav:
   - title: Hardware
+    url: /hardware/hardware-index/
     children:
       - title: HaynesTower
         url: /hardware/haynestower/     
       - title: MS-01
         url: /hardware/ms-01/
-      - title: RX 6400
-        url: /hardware/rx6400/
 
 adventuresnav:
   - title: Adventures
+    url: /docs/adventures-index/
     children:
       - title: Hosting This Site
         url: /docs/github-pages/
@@ -46,11 +60,14 @@ adventuresnav:
         url: /docs/adding-ms01-node/
       - title: Hackin Tosh
         url: /docs/hackintosh/
+      - title: GPU Passthrough
+        url: /docs/gpu-passthrough.md/        
       - title: TODO Backup Strategy
         url: /docs/backup-strat/
 
 sheetsnav:
   - title: Cheat Sheets
+    url: /cheatsheets/cheatsheets-index/
     children:
       - title: General Linux
         url: /cheatsheets/linux-commands/
