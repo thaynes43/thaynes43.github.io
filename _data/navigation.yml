@@ -33,7 +33,9 @@ hardwarenav:
       - title: HaynesTower
         url: /hardware/haynestower/     
       - title: MS-01
-        url: /hardware/ms-01/ 
+        url: /hardware/ms-01/
+      - title: RX 6400
+        url: /hardware/rx6400/
 
 adventuresnav:
   - title: Adventures
