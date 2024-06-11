@@ -61,7 +61,7 @@ adventuresnav:
       - title: Hackin Tosh
         url: /docs/hackintosh/
       - title: GPU Passthrough
-        url: /docs/gpu-passthrough.md/        
+        url: /docs/gpu-passthrough/       
       - title: TODO Backup Strategy
         url: /docs/backup-strat/
 

@@ -1,6 +1,6 @@
 ---
 title: GPU Passthrough w/ Radeon RX 6400
-permalink: /hardware/rx6400/
+permalink: /docs/gpu-passthrough/
 ---
 
 ## Installing the GPU 
