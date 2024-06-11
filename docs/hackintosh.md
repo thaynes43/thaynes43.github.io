@@ -243,12 +243,21 @@ Yes! The eagle has landed:
 
 ![reconfigure ips for vlan]({{ site.url }}/images/proxmox/mac01-migrated.png)
 
-## iGPU
+## PBA Problem
 
-The UI is a bit laggy right now and I'm at 8 cores 20Gb of RAM so I don't think any beefing will help other than an iGPU
+Day 2 of owning a hackintosh I realized PBA is shutting down the VM to back it up. The hackintosh just sits at a screen waiting for you to press enter by default so I will need to consult [nick sherlock](https://www.nicksherlock.com/2022/10/installing-macos-13-ventura-on-proxmox/) again on how to fix this up!
+
+## GPU
+
+The UI is a bit laggy right now and I'm at 8 cores 20Gb of RAM so I don't think any beefing will help other than either a GPU or iGPU. Since I have two macOS VMs right now I figured I could try one of each and see if it's really necessary to have a dedicated GPU. 
+
+### iGPU
 
 TODO
 
 First I need to expose it to Proxmox using [this guide](https://www.reddit.com/r/Proxmox/comments/14fzj8l/tutorial_full_igpu_passthrough_for_jellyfin/)
 
 Then set it up for the vm using [this guide](https://dortania.github.io/OpenCore-Post-Install/gpu-patching/intel-patching/#terminology)
+
+### AMD RX 6400 
+

@@ -30,6 +30,11 @@ The rest of this page is things I may or may not take on but don't want to lose 
 
 ### Infrastructure
 
+#### Temp Monitoring 
+
+* In Proxmox on the dashboards looks good via [this guide](https://sluijsjes.nl/2024/05/20/how-to-show-your-cpu-temperature-in-the-proxmox-web-interface/)
+* Something in grafana later would be good too for historical data
+
 #### Finish Backup Strat
 
 * See [backup-strat]({{ site.url }}/docs/backup-strat/)
