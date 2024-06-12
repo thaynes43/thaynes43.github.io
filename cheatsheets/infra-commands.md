@@ -3,6 +3,20 @@ title: Infrastructure Cheat Sheet
 permalink: /cheatsheets/infra-commands/
 ---
 
+## Proxmox
+
+### Reboot
+
+```
+systemctl reboot
+```
+
+### Reload Network Stuff
+
+```
+ifreload -a
+```
+
 ## ceph
 
 ### Archive crash warnings

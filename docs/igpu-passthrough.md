@@ -3,16 +3,17 @@ title: GPU Passthrough w/ Intel Iris Xe
 permalink: /docs/igpu-passthrough/
 ---
 
-In order to do this I now had to embark on [these steps](https://www.reddit.com/r/Proxmox/comments/14fzj8l/tutorial_full_igpu_passthrough_for_jellyfin/) to pass through my iGPU. 
+## iGPU Passthrough Attempt
 
-First he has you add some crazy shit to `/etc/default/grub`
+### Part 1 - the wrong path
 
-```
-GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt pcie_acs_override=downstream,multifunction initcall_blacklist=sysfb_init video=simplefb:off video=vesafb:off video=efifb:off video=vesa:off disable_vga=1 vfio_iommu_type1.allow_unsafe_interrupts=1 kvm.ignore_msrs=1 modprobe.blacklist=radeon,nouveau,nvidia,nvidiafb,nvidia-gpu,snd_hda_intel,snd_hda_codec_hdmi,i915
-```
-A lot of this looks like things I added to other files for the RX 6400. 
+In order to do this I thought I had to embark on [these steps](https://www.reddit.com/r/Proxmox/comments/14fzj8l/tutorial_full_igpu_passthrough_for_jellyfin/) to pass through my iGPU. 
 
-Same with these:
+However, those steps blew...
+
+> **WARNING:** I could not reboot later down the road and it got stuck on `Loading initial Ramdisk` every time. I booted to safemode and rolled back to `GRUB_CMDLINE_LINUX_DEFAULT="quiet"` and it worked. This is strange because I was able to reboot in the coming lines. 
+
+After the rolling back all I was left with a bit to sort out but these modules were installed so I didn't have to do that again:
 
 ```
 nano /etc/modules
@@ -26,55 +27,255 @@ update-initramfs -u -k all
 reboot
 ```
 
-Once back up we can add the iGPU to the VM via `the VM` -> `Hardware` -> `Add` -> `PCI Device` and add:
+### Part 2 - a better path
 
-![add igpu dropdown]({{ site.url }}/images/proxmox/add-igpu-dropdown.png)
+Now an interlude to follow [these steps](https://forum.level1techs.com/t/i915-sr-iov-on-i9-13900h-minisforum-ms-01-proxmox-pve-kernel-6-5-jellyfin-full-hardware-accelerated-lxc/209943) instead. That of course immediately told me to first follow [this guide](https://www.derekseaman.com/2023/11/proxmox-ve-8-1-windows-11-vgpu-vt-d-passthrough-with-intel-alder-lake.html).
 
-![add igpu pcie]({{ site.url }}/images/proxmox/add-igpu-pcie.png)
+#### Blind Faith w/ Commands
 
-And also set `Hardware` -> `Display` -> `none` as we did with the RX 6400 Windows VM.
-
-> **NOTE:** Since we already installed nomachine and Parsec plus all the updates and VirtIO drivers we should be fine but if you didn't you'd need a fake display to do that first.
-
-And VICTORYYYYYYYYYYYY! 
-
-Sort of, the window is tiny:
-
-![igpu tiny window]({{ site.url }}/images/windows/igpu-tiny-window.png)
-
-But opening it in Parsec somehow snapped it out of a frozen state it went into when I tried Display Settings and switched it to 1920x1080. Now I'm flush with resolutions:
-
-![igpu resolutions]({{ site.url }}/images/windows/igpu-resolutions.png)
-
-Closing Parsec messed up nomachine so there's something going on there that I don't understand. Before I continue I'm going to see if passing the host CPU helps with anything:
-
-In `pve04:/etc/pve/qemu-server/114.conf`:
-* Change `machine: pc-q35-8.1` to `machine: q35`
-* Change `cpu: x86-64-v2-AES` to `cpu: host,hidden=1,flags=+pcid`
-* Add `args: -cpu 'host,+kvm_pv_unhalt,+kvm_pv_eoi,hv_vendor_id=NV43FIX,kvm=off'`
-
-Threw some errors:
+It gets hardcore fast with a kernal upgrade so I migrated my Ventura VM off the box incase shit goes to shit. Though I could just restore the backup.
 
 ```
-vm 114 - unable to parse value of 'machine' - format error
-type: value does not match the regex pattern
-TASK ERROR: q35 machine model is not enabled at /usr/share/perl5/PVE/QemuServer/PCI.pm line 486.
+apt update
+apt install proxmox-headers-6.5.13-3-pve
+apt install proxmox-kernel-6.5.13-3-pve-signed
+proxmox-boot-tool kernel pin 6.5.13-3-pve
+proxmox-boot-tool refresh
+reboot
 ```
 
-My config said q34... so retrying. For some reason I need to log in with nomachine on the tiny VM to get Parsec to detect the VM and allow me to boost the resolution. But once I was in I was greeted with a happy site:
+And holy fuck, it changed the network interfaces again. This time `np#` went away. `asdas`
 
-![igpu software]({{ site.url }}/images/windows/igpu-software.png)
-
-Since windows installed something it obviously wanted to reboot so I figured I'd see if I'd get hit with tiny nomachine again and sure enough it was super small. 
-
-Minor problem, Device Manager is hitting a Code 43 for the iGPU!
+Now time for more voodoo:
 
 ```
-Windows has stopped this device because it has reported problems. (Code 43)
+apt update && apt install git sysfsutils pve-headers mokutil -y
+rm -rf /var/lib/dkms/i915-sriov-dkms*
+rm -rf /usr/src/i915-sriov-dkms*
+rm -rf ~/i915-sriov-dkms
+KERNEL=$(uname -r); KERNEL=${KERNEL%-pve}
 ```
 
-May have something to do with [SR-IOV](https://forum.proxmox.com/threads/enabling-sr-iov-for-intel-nic-x550-t2-on-proxmox-6.56677/)
+More fucking voodoo:
 
-Another [guide](https://www.michaelstinkerings.org/gpu-virtualization-with-intel-12th-gen-igpu-uhd-730/) for later!
+```
+cd ~
+git clone https://github.com/strongtz/i915-sriov-dkms.git
+cd ~/i915-sriov-dkms
+cp -a ~/i915-sriov-dkms/dkms.conf{,.bak}
+sed -i 's/"@_PKGBASE@"/"i915-sriov-dkms"/g' ~/i915-sriov-dkms/dkms.conf
+sed -i 's/"@PKGVER@"/"'"$KERNEL"'"/g' ~/i915-sriov-dkms/dkms.conf
+sed -i 's/ -j$(nproc)//g' ~/i915-sriov-dkms/dkms.conf
+cat ~/i915-sriov-dkms/dkms.conf
+```
 
-And even better, one for the [MS-01!](https://forum.level1techs.com/t/i915-sr-iov-on-i9-13900h-minisforum-ms-01-proxmox-pve-kernel-6-5-jellyfin-full-hardware-accelerated-lxc/209943)
+The last command spit out:
+
+```
+PACKAGE_NAME="i915-sriov-dkms"
+PACKAGE_VERSION="6.5.13-3"
+```
+
+Which the guide says is good. At this point I guess we keep just inputting crazy voodoo:
+
+```
+apt install --reinstall dkms -y
+dkms add .
+cd /usr/src/i915-sriov-dkms-$KERNEL
+dkms status
+```
+
+Then last line checks to see if it's all good:
+
+```
+root@pve04:/usr/src/i915-sriov-dkms-6.5.13-3# dkms status
+i915-sriov-dkms/6.5.13-3: added
+```
+
+More voodoo, this is getting out of control:
+
+```
+dkms install -m i915-sriov-dkms -v $KERNEL -k $(uname -r) --force -j 1
+dkms status
+```
+
+Them more checks to see if the voodoo worked:
+
+```
+root@pve04:/usr/src/i915-sriov-dkms-6.5.13-3# dkms status
+i915-sriov-dkms/6.5.13-3, 6.5.13-3-pve, x86_64: installed
+```
+
+Then some way to bypass secure boot:
+
+```
+mokutil --import /var/lib/dkms/mok.pub
+```
+
+Don't mess up the password! Then it's time to upgrade GRUB again so ignore the massive shit I posted above the interlude:
+
+```
+cp -a /etc/default/grub{,.bak}
+sudo sed -i '/^GRUB_CMDLINE_LINUX_DEFAULT/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt i915.enable_guc=3 i915.max_vfs=7"' /etc/default/grub
+update-grub
+update-initramfs -u -k all
+apt install sysfsutils -y
+```
+
+Now that that is top notch we need this intel:
+
+```
+root@pve04:/usr/src/i915-sriov-dkms-6.5.13-3# lspci | grep VGA
+00:02.0 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04)
+```
+
+Fortunately mine matches the guide:
+
+```
+echo "devices/pci0000:00/0000:00:02.0/sriov_numvfs = 7" > /etc/sysfs.conf
+```
+
+And to verify the change:
+
+```
+cat /etc/sysfs.conf
+devices/pci0000:00/0000:00:02.0/sriov_numvfs = 7
+```
+
+#### Into the Basement
+
+Now it's time for a reboot but one that requires a monitor and KB&M attached to the host to set up something called `MOK`!
+
+For menu options I selected `Enroll MOK` -> `Continue` -> `Yes` -> `Reboot`
+
+#### Reboot Broke It!
+
+Then my damn network interfaces changed their names again! But editing `/etc/network/interfaces` and a `ifreload -a` got that sorted.
+
+Which was because after doing that MOK thing it booted back to the latest kernal - as seen here in the grub menu options:
+
+```
+root@pve04:/boot/grub# grep menu grub.cfg 
+if [ x"${feature_menuentry_id}" = xy ]; then
+  menuentry_id_option="--id"
+  menuentry_id_option=""
+export menuentry_id_option
+    set timeout_style=menu
+set menu_color_normal=cyan/blue
+set menu_color_highlight=white/blue
+menuentry 'Proxmox VE GNU/Linux' --class proxmox --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-simple-8b2eb4ef-3076-4676-9210-df8d2ae81f5e' {
+submenu 'Advanced options for Proxmox VE GNU/Linux' $menuentry_id_option 'gnulinux-advanced-8b2eb4ef-3076-4676-9210-df8d2ae81f5e' {
+        menuentry 'Proxmox VE GNU/Linux, with Linux 6.8.4-3-pve' --class proxmox --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-6.8.4-3-pve-advanced-8b2eb4ef-3076-4676-9210-df8d2ae81f5e' {
+        menuentry 'Proxmox VE GNU/Linux, with Linux 6.8.4-3-pve (recovery mode)' --class proxmox --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-6.8.4-3-pve-recovery-8b2eb4ef-3076-4676-9210-df8d2ae81f5e' {
+        menuentry 'Proxmox VE GNU/Linux, with Linux 6.8.4-2-pve' --class proxmox --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-6.8.4-2-pve-advanced-8b2eb4ef-3076-4676-9210-df8d2ae81f5e' {
+        menuentry 'Proxmox VE GNU/Linux, with Linux 6.8.4-2-pve (recovery mode)' --class proxmox --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-6.8.4-2-pve-recovery-8b2eb4ef-3076-4676-9210-df8d2ae81f5e' {
+        menuentry 'Proxmox VE GNU/Linux, with Linux 6.5.13-3-pve' --class proxmox --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-6.5.13-3-pve-advanced-8b2eb4ef-3076-4676-9210-df8d2ae81f5e' {
+        menuentry 'Proxmox VE GNU/Linux, with Linux 6.5.13-3-pve (recovery mode)' --class proxmox --class gnu-linux --class gnu --class os $menuentry_id_option 'gnulinux-6.5.13-3-pve-recovery-8b2eb4ef-3076-4676-9210-df8d2ae81f5e' {
+menuentry "Memory test (memtest86+x64.efi)" {
+menuentry 'Memory test (memtest86+x64.efi, serial console)' {
+menuentry 'UEFI Firmware Settings' $menuentry_id_option 'uefi-firmware' {
+# This file provides an easy way to add custom menu entries.  Simply type the
+# menu entries you want to add after this comment.  Be careful not to change
+```
+
+So I need to set the default to `gnulinux-6.5.13-3-pve-advanced-8b2eb4ef-3076-4676-9210-df8d2ae81f5e`.
+
+```
+nano /etc/default/grub
+Change
+GRUB_DEFAULT=0
+TO
+GRUB_DEFAULT="gnulinux-advanced-8b2eb4ef-3076-4676-9210-df8d2ae81f5e>gnulinux-6.5.13-3-pve-advanced-8b2eb4ef-3076-4676-9210-df8d2ae81f5e"
+update-grub
+```
+
+#### Reboot Fixed It!
+
+And in the right kernal we see the correct output from the final exam!
+
+```
+root@pve04:~# lspci | grep VGA
+00:02.0 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04)
+00:02.1 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04)
+00:02.2 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04)
+00:02.3 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04)
+00:02.4 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04)
+00:02.5 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04)
+00:02.6 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04)
+00:02.7 VGA compatible controller: Intel Corporation Raptor Lake-P [Iris Xe Graphics] (rev 04)
+root@pve04:~# 
+```
+
+```
+root@pve04:~# dmesg | grep i915 | grep Enabled
+[    4.346190] i915 0000:00:02.0: Enabled 7 VFs
+root@pve04:~# dmesg | grep i915 | grep minor
+[    3.779609] [drm] Initialized i915 1.6.0 20201103 for 0000:00:02.0 on minor 0
+[    4.323515] [drm] Initialized i915 1.6.0 20201103 for 0000:00:02.1 on minor 1
+[    4.328156] [drm] Initialized i915 1.6.0 20201103 for 0000:00:02.2 on minor 2
+[    4.332771] [drm] Initialized i915 1.6.0 20201103 for 0000:00:02.3 on minor 3
+[    4.335769] [drm] Initialized i915 1.6.0 20201103 for 0000:00:02.4 on minor 4
+[    4.339356] [drm] Initialized i915 1.6.0 20201103 for 0000:00:02.5 on minor 5
+[    4.342823] [drm] Initialized i915 1.6.0 20201103 for 0000:00:02.6 on minor 6
+[    4.346097] [drm] Initialized i915 1.6.0 20201103 for 0000:00:02.7 on minor 7
+```
+
+Now I'm flush with GPUs!
+
+Next to configure the Window 11 VM to one of the new ones. I selected the first and ticked `Primary GPU`:
+
+![igpu tiny window]({{ site.url }}/images/proxmox/more-gpus.png)
+
+Immediately didn't work:
+
+`TASK ERROR: no pci device info for device '0000:00:02.1'`
+
+Un-ticking "All functions" fixed it, this was in the guide I just don't read.
+
+Still error 43 though, maybe something I need to unwind from earlier trial and error.
+
+```
+nano /etc/pve/qemu-server/114.conf
+DELETE args: -cpu 'host,+kvm_pv_unhalt,+kvm_pv_eoi,hv_vendor_id=NV43FIX,kvm=off'
+CHANGE cpu: host,hidden=1,flags=+pcid to cpu=host
+```
+
+Checking PCI Device it's clear the 7 are gone! Going to remove that and reboot to see if they comeback and if I can map it as a device.
+
+Rebooting brought them back. I went with the Datacenter -> Recourse Mappings method mentioned [here](https://forum.level1techs.com/t/intel-i915-sr-iov-mode-for-flex-170-proxmox-pve-kernel-6-5/208294) instead of the direct device:
+
+![igpu mapped window]({{ site.url }}/images/proxmox/igpu-mapped-mapped.png)
+
+That complained:
+
+```
+TASK ERROR: connection timed out
+```
+
+#### iGPU Detected!
+
+Switching back to the device (vs. the mapping) got me a win with a caveat:
+
+No error 43!
+![igpu victory]({{ site.url }}/images/windows/igpu-victory.png)
+
+It's in task manager!
+![igpu victory taskmanager]({{ site.url }}/images/windows/igpu-victory-taskmanager.png)
+
+And Intel Graphics Command Center!!!
+![igpu victory intelsw]({{ site.url }}/images/windows/igpu-victory-intelsw.png)
+
+The caveat being nomachine and Parsec stopped working 100%. RDP got the job done but it's doing it's own thing.
+
+I decided to try the mapping again but this time read what the other guy did a bit more carefully and mapped all 7:
+
+![igpu mapped]({{ site.url }}/images/proxmox/igpu-mapping.png)
+
+[Parsec docs](https://support.parsec.app/hc/en-us/articles/4425688194189-Hardware-and-Software-Compatibility#intel_gpu) make it appear that it won't work without QSV which I assume Iris doesn't have so I'm going to roll with RDP for now!
+
+#### Gaming
+
+My benchmark game Hades was certainly playable but I couldn't get `Game Bar` to display the fps. RDP scaled well with the monitor too...
+
+![hades igpu huge]({{ site.url }}/images/proxmox/hades-igpu-huge.png)
+
