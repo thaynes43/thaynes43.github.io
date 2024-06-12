@@ -277,5 +277,12 @@ I decided to try the mapping again but this time read what the other guy did a b
 
 My benchmark game Hades was certainly playable but I couldn't get `Game Bar` to display the fps. RDP scaled well with the monitor too...
 
-![hades igpu huge]({{ site.url }}/images/proxmox/hades-igpu-huge.png)
+![hades igpu huge]({{ site.url }}/images/windows/hades-igpu-huge.png)
 
+## Remarks
+
+Hopefully I end up needing the iGPU for something down the road, certainly won't be great for gaming but [this guy](https://www.reddit.com/r/Proxmox/comments/1ayer8w/intel_gen_12th_iris_xe_vgpu_on_proxmox/) on reddit also wrote a great guide that if I found earlier would have saved me some trouble!
+
+## Next Challenge
+
+The next thing to do with iGPUs is to play around with `Datacenter` -> `Resource Mappings` to see if I can use one in an HA LXC or VM so it'll just migrate to an equivalent vGPU.
