@@ -271,7 +271,7 @@ I decided to try the mapping again but this time read what the other guy did a b
 
 ![igpu mapped]({{ site.url }}/images/proxmox/igpu-mapping.png)
 
-[Parsec docs](https://support.parsec.app/hc/en-us/articles/4425688194189-Hardware-and-Software-Compatibility#intel_gpu) make it appear that it won't work without QSV which I assume Iris doesn't have so I'm going to roll with RDP for now!
+Once I manually installed the [intel drivers](https://www.intel.com/content/www/us/en/search.html#sort=relevancy&f:@tabfilter=[Downloads]&f:@stm_10385_en=[Graphics]) for the iGPU I was able to get nomachine and parsec to work again sas the window's popping up which wasn't great.
 
 #### Gaming
 
@@ -279,10 +279,13 @@ My benchmark game Hades was certainly playable but I couldn't get `Game Bar` to 
 
 ![hades igpu huge]({{ site.url }}/images/windows/hades-igpu-huge.png)
 
+After manually installing the intel drivers Parsec of course worked but Hades just crashed on startup.
+
 ## Remarks
 
 Hopefully I end up needing the iGPU for something down the road, certainly won't be great for gaming but [this guy](https://www.reddit.com/r/Proxmox/comments/1ayer8w/intel_gen_12th_iris_xe_vgpu_on_proxmox/) on reddit also wrote a great guide that if I found earlier would have saved me some trouble!
 
-## Next Challenge
+## Next Challenges
 
-The next thing to do with iGPUs is to play around with `Datacenter` -> `Resource Mappings` to see if I can use one in an HA LXC or VM so it'll just migrate to an equivalent vGPU.
+* Play around with `Datacenter` -> `Resource Mappings` to see if I can use one in an HA LXC or VM so it'll just migrate to an equivalent vGPU.
+* [iGPU for Ubuntu](https://www.reddit.com/r/homelab/comments/1c4toid/a_newbies_guide_to_setting_up_a_proxmox_ubuntu_vm/) see if it helps Waydroid... 

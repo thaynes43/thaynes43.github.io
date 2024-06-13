@@ -219,80 +219,7 @@ Enough distractions, time to go install some AMD drivers on a macos VM.
 
 #### Benchmarks
 
-To quantify the difference a GPU makes we're gonna need some benchmarks. I want to try the RX 6400 vs. iGPU vs. nothing but I need some way to collect metrics that all three support. Xbox game gar should work! 
-
-I am also going to need another VM to first test without a GPU and then passthrough the iGPU so I don't regress my working "gaming VM". Fortunately, that is super easy to make. Just need to install the guest agent [this](https://pve.proxmox.com/wiki/Qemu-guest-agent) time when the ISO is mounted. It was easy as opening the disk and installing the msi in the guest agent folder.
-
-Rules:
-1. 1280x720 resolution set to full screen
-2. Parsec used for remote access w/ controller
-
-##### RX 6400 Benchmark - Hades
-
-Getting the fps to show up turned out to be difficult. Game bar worked once I flipped it into windowed mode and then back to full screen. Hades on the RX 6400 was showing > 50fps average in something it called "performance report":
-
-![rx6400 hades performance report]({{ site.url }}/images/windows/rx6400-hades-performance-report.png)
-
-Live game bar was a bit lower from the sample I took actually playing. I assume "performance report" gets thrown off from the extremely high fps I get when the game is paused. That was > 30fps:
-
-![rx6400 hades benchmark]({{ site.url }}/images/windows/rx6400-hades-benchmark.png)
-
-##### No GPU - Hades
-
-This one is going to be interesting, right off the bat the virtual display only supported 1280x800 which is pretty close to the baseline. Before messing with the passed in `Display` I decided to go with it.
-
-Once I opened the game parsec immediately lowered the bit rate to try and compensate for something it had no control over since the host was going to render at the same speed regardless. Frames were much lower, usually < 15fps:
-
-![nogpu hades benchmark]({{ site.url }}/images/windows/nogpu-hades-benchmark.png)
-
-It felt worst than twice as bad as the GPU benchmark because the game froze constantly which wasn't really reflected in the FPS. I ended up dying immediately in an area I was breezing through before. The screen shot did a good job at capturing the crippled bitrate: 
-
-![nogpu dead]({{ site.url }}/images/windows/nogup-dead.png)
-
-##### Virtio GPU - Hades
-
-Before I attempt to passthrough the iGPU I wanted to see if any of the other Display options had an impact. Since there were too man to try all of them I read up [here](https://pve.proxmox.com/pve-docs/pve-admin-guide.html#qm_virtual_machines_settings) on what they did. That wasn't really helpful so I tried Virtio GPU w/ max memory (512). 
-
-That went south fast:
-
-![virtio gpu bsod]({{ site.url }}/images/windows/virtio-gpu-bsod.png)
-
-However, on reboot, it went to the log in screen so I continued marching forward. Sill, no GPU showed up under Task Manager so my expectations were very low. However, this did unlock an interesting subset of resolutions so I tired to even the playing field by going down a notch:
-
-![virtio gpu resolutions]({{ site.url }}/images/windows/virtio-gpu-resolutions.png)
-
-For some reason 800x600 froze Parsec so I stuck with the classic 1024x768 which tasted like nostalgia. I couldn't even get fps metrics to show for this, and the picture was nearly illegible, so I just called it:
-
-![hades virti0 gpu bad]({{ site.url }}/images/windows/hades-virti0-gpu-bad.png)
-
-Parsec also couldn't get sound with this Display but when I opened nomachine to save myself from a blurry screen the sound popped right on.
-
-##### VirGL GPU - Hades
-
-After my last mishap I was sure this would fail too but since it was the mode I think the documentation referenced I figured I'd give it a fair chance. This was also constrained to 512MB of memory which I don't think was really passed in last time since no GPU was found.
-
-Another failure to launch right off the bat:
-
-```
-TASK ERROR: missing libraries for 'virtio-gl' detected! Please install 'libgl1' and 'libegl1'
-```
-
-Easy to install though:
-
-```
-apt install libgl1
-apt install libegl1
-```
-
-Booted up after that but same awkward resolutions and no GPU showing up as before. Parsec did get volume so that was nice. The game bar refused to even start this time so I wasn't going to be collecting any metrics but it looked exactly the same as above. So for whatever reason these options made it worst! 
-
-##### iGPU - Hades
-
-See the [iGPU Saga]({{ site.url }}/docs/igpu-passthrough/) for how I got it running Unfortunately both Parsec and nomachine behave poorly with the iGPU passed through. However, RDP worked well and the game was playable. 
-
-![hades igpu huge]({{ site.url }}/images/proxmox/hades-igpu-huge.png)
-
-Game bar didn't work for FPS but and it wasn't running nearly as well as with the RX 6400 but it could be played which was not the case for anything other than the RX 6400.
+After all this passing through I experimented a bit with a game. See the results over ![here]({{ site.url }}/benchmarks/hades/).
 
 ### Back to Mac! 
 
@@ -362,6 +289,55 @@ args: -device isa-applesmc,osk="..." -smbios type=2 cpu host,kvm=on,vendor=Genui
 ```
 
 But still no dice. My main suspicion was that I've been following guides for people who plug their peripherals right into the devices passed the the VM. But then I found [this](https://dortania.github.io/GPU-Buyers-Guide/modern-gpus/amd-gpu.html) and I learned that the RX 6400 didn't cut the mustard. I did what any reasonable human being would do and bought an RX 6800 but that'll have to wait for the MEGA AI SERVER.
+
+## Ubuntu w/ Waydroid
+
+### Figuring it Out
+
+Not as many guides exists for this as the general "pass through shit" ones but [this](https://manjaro.site/tips-to-create-ubuntu-20-04-vm-on-proxmox-with-gpu-passthrough/) looks sufficiently dangerous. My VM is was missing a good chunk of what this had though.
+
+1. Machine was `Dafault` instead of `q35`
+2. BIOS was `Default (SeaBIOS)` instead of `OVMF` and because of this I had no `EFI Disk`
+
+I set that all up and added the GPU as a PCIE device. The VM instantly migrated to a different node which made 0 sense. It then wouldn't migrate back because it had a local resource attached that couldn't be found. Nothing is ever easy.
+
+To rule out the two differences I decided to go without the GPU first. It still migrated and wouldn't start, but on the host it migrated to is started. Then it migrated back and started again. Maybe I'll remove this one from HA for now...
+
+This reminded me of another VM I tried to switch the BIOS type on after creation. I ended up nuking that one, not sure how to get the `EFI Disk` working after the fact. MAybe `SeaBIOS` is fine.
+
+Somehow the display for VNC was "Portrait (Right)" which I think was my fault from an earlier experiment. After much inverted mouse navigation I got it back and shut down to add the GPU.
+
+This program shows some stuff about the computer but nothing for the GPU:
+
+```
+sudo lshw-gtk
+```
+
+This works:
+
+```
+lspci  -v -s  $(lspci | grep ' VGA ' | cut -d" " -f 1)
+```
+
+Not there yet, gonna see if I can switch the BIOS. I guess here the trick is to create a new VM and then us it's `EIF Disk`but maybe if I am clever I can clone it.
+
+The new disk was `efidisk0: vm-disks:vm-115-disk-0,efitype=4m,pre-enrolled-keys=1,size=1M`
+
+And the old was `efidisk0: vm-disks:vm-110-disk-2,efitype=4m,pre-enrolled-keys=1,size=1M`
+
+So I just needed to swap the.. but it didn't work so I guess onto the fresh install for now!
+
+### Trying Again
+
+After much fiddling with the new VM I landed with these settings:
+
+![ubuntu gpu]({{ site.url }}/images/ubuntu/ubuntu-gpu.png)
+
+And boom we got a GPU:
+
+![gpu passed through]({{ site.url }}/images/ubuntu/gpu-passed-through.png)
+
+However something seemed to break in the fiddling so I may need one more...
 
 ## RX 6800
 
