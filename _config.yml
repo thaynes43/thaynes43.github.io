@@ -146,6 +146,14 @@ defaults:
       layout: single
       sidebar:
         nav: hardwarenav
+  # benchmarks
+  - scope:
+      path: benchmarks
+      type: pages
+    values:
+      layout: single
+      sidebar:
+        nav: benchmarksnav
 
 enable_copy_code_button: true
 #paginate: 5

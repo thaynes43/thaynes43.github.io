@@ -31,6 +31,8 @@ homenav:
         url: /docs/adventures-index/
       - title: Hardware
         url: /hardware/hardware-index/
+      - title: Benchmarks
+        url: /benchmarks/benchmarks-index/
       - title: Cheat Sheets
         url: /cheatsheets/cheatsheets-index/
 
@@ -78,3 +80,10 @@ sheetsnav:
         url: /cheatsheets/kube-commands/
       - title: Infrastructure
         url: /cheatsheets/infra-commands/
+
+benchmarksnav:
+  - title: Benchmarks
+    url: /benchmarks/benchmarks-index/
+    children:
+      - title: Hades
+        url: /benchmarks/hades/     
