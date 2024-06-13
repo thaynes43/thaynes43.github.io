@@ -5,8 +5,8 @@ main:
     url: /docs/adventures-index/
   - title: Hardware
     url: /hardware/hardware-index/
-  - title: Benchmarks
-    url: /benchmarks/benchmarks-index/
+#  - title: Benchmarks
+#    url: /benchmarks/benchmarks-index/
   - title: Cheat Sheets
     url: /cheatsheets/cheatsheets-index/
 
@@ -77,7 +77,7 @@ adventuresnav:
     url: /benchmarks/benchmarks-index/
     children:
       - title: Hades
-        url: /benchmarks/hades/ 
+        url: /benchmarks/hades/
 
 sheetsnav:
   - title: Cheat Sheets
