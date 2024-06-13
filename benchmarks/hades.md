@@ -80,7 +80,7 @@ Booted up after that but same awkward resolutions and no GPU showing up as befor
 
 See the [iGPU Saga]({{ site.url }}/docs/igpu-passthrough/) for how I got it running Unfortunately both Parsec and nomachine behave poorly with the iGPU passed through. However, RDP worked great and the game was playable. 
 
-![hades igpu huge]({{ site.url }}/images/proxmox/hades-igpu-huge.png)
+![hades igpu huge]({{ site.url }}/images/windows/hades-igpu-huge.png)
 
 Game bar didn't work for FPS but and it wasn't running nearly as well as with the RX 6400 but it could be played which was not the case for anything other than the RX 6400.
 

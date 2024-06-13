@@ -219,7 +219,7 @@ Enough distractions, time to go install some AMD drivers on a macos VM.
 
 #### Benchmarks
 
-After all this passing through I experimented a bit with a game. See the results over ![here]({{ site.url }}/benchmarks/hades/).
+After all this passing through I experimented a bit with a game. See the results over [here]({{ site.url }}/benchmarks/hades/).
 
 ### Back to Mac! 
 
