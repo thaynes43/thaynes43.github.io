@@ -72,7 +72,7 @@ adventuresnav:
       - title: TODO Backup Strategy
         url: /docs/backup-strat/
 
- sheetsnav:
+ benchmarksnav:
   - title: Benchmarks
     url: /benchmarks/benchmarks-index/
     children:
