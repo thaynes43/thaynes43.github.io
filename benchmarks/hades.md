@@ -7,7 +7,7 @@ I decided to run the game [Hades](https://store.steampowered.com/app/1145360/Had
 
 ## Fresh GPU Passthrough Comparisons
 
-Hades was the first thing I ran when I passed though the ![RX 6400]({{ site.url }}/docs/gpu-passthrough/)
+Hades was the first thing I ran when I [passed though the RX 6400]({{ site.url }}/docs/gpu-passthrough/#gaming).
 
 To quantify the difference a GPU makes we're gonna need some benchmarks. I want to try the RX 6400 vs. iGPU vs. nothing but I need some way to collect metrics that all three support. Xbox game gar should work! 
 
