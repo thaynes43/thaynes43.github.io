@@ -34,7 +34,7 @@ homenav:
       - title: Hardware
         url: /hardware/hardware-index/
       - title: Benchmarks
-        url: /benchmarks/benchmarks-index/ 
+        url: /benchmarks/benchmarks-index/
       - title: Cheat Sheets
         url: /cheatsheets/cheatsheets-index/
 
@@ -74,13 +74,6 @@ adventuresnav:
       - title: TODO Backup Strategy
         url: /docs/backup-strat/
 
- sheetsnav:
-  - title: Benchmarks
-    url: /benchmarks/benchmarks-index/
-    children:
-      - title: Hades
-        url: /benchmarks/hades/ 
-
 sheetsnav:
   - title: Cheat Sheets
     url: /cheatsheets/cheatsheets-index/
@@ -91,3 +84,10 @@ sheetsnav:
         url: /cheatsheets/kube-commands/
       - title: Infrastructure
         url: /cheatsheets/infra-commands/
+
+benchmarksnav:
+  - title: Benchmarks
+    url: /benchmarks/benchmarks-index/
+    children:
+      - title: Hades
+        url: /benchmarks/hades/     

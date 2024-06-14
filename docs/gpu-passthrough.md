@@ -201,6 +201,8 @@ However, this might be thanks to the [dummy plug](https://www.amazon.com/gp/prod
 
 Before going any further I activated windows using my a key from what use to be called MSDN. I then had a few years of updates to install.
 
+#### Gaming
+
 Since that was taking forever I decided to give a lightweight offline game a try. I use `nomachine` for everything and this is about the most responsive I've seen it. 
 
 ![hades vm]({{ site.url }}/images/windows/hades-vm.png)
@@ -219,7 +221,7 @@ Enough distractions, time to go install some AMD drivers on a macos VM.
 
 #### Benchmarks
 
-After all this passing through I experimented a bit with a game. See the results over ![here]({{ site.url }}/benchmarks/hades/).
+After all this passing through I experimented a bit with a game. See the results over [here]({{ site.url }}/benchmarks/hades/).
 
 ### Back to Mac! 
 
