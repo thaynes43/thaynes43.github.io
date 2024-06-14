@@ -146,3 +146,12 @@ These are just things I want to try and host
 
 * [joplin](https://joplinapp.org/) for notes might be a good for mobile. 
 * Need [SeaweedFS](https://github.com/seaweedfs/seaweedfs) or something for self hosted back end storage. The app seems to do the rest. 
+
+### Tour de OS
+
+Found a [cool site](https://distrowatch.com/dwres.php?resource=major) that lists and describes distros. 
+
+* [HOLOISO](https://github.com/HoloISO/releases) for a SteamOS 3 (deck OS) esq implementations 
+* [Pop!_OS](https://pop.system76.com/) for AI
+* [Bliss OS](https://sourceforge.net/projects/blissos-dev/) which is what Waydroid-Linux points to and seems better than the containerized install on Ubuntu
+* [Madness](https://en.wikipedia.org/wiki/TempleOS)

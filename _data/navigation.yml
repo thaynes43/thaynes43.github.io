@@ -69,6 +69,8 @@ adventuresnav:
         url: /docs/gpu-passthrough/
       - title: iGPU Passthrough
         url: /docs/igpu-passthrough/
+      - title: Waydroid
+        url: /docs/waydroid/
       - title: TODO Backup Strategy
         url: /docs/backup-strat/
 

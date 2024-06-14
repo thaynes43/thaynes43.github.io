@@ -290,7 +290,7 @@ args: -device isa-applesmc,osk="..." -smbios type=2 cpu host,kvm=on,vendor=Genui
 
 But still no dice. My main suspicion was that I've been following guides for people who plug their peripherals right into the devices passed the the VM. But then I found [this](https://dortania.github.io/GPU-Buyers-Guide/modern-gpus/amd-gpu.html) and I learned that the RX 6400 didn't cut the mustard. I did what any reasonable human being would do and bought an RX 6800 but that'll have to wait for the MEGA AI SERVER.
 
-## Ubuntu w/ Waydroid
+## Ubuntu Passthrough
 
 ### Figuring it Out
 
@@ -331,7 +331,7 @@ So I just needed to swap the.. but it didn't work so I guess onto the fresh inst
 
 After much fiddling with the new VM I landed with these settings:
 
-![ubuntu gpu]({{ site.url }}/images/ubuntu/ubuntu-gpu.png)
+![ubuntu gpu]({{ site.url }}/images/proxmox/ubuntu-gpu.png)
 
 And boom we got a GPU:
 
