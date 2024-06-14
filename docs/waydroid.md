@@ -17,7 +17,7 @@ There seems to be two ways to run Waydroid. First is on top of an Ubuntu VM and 
 
 ## Running On Ubuntu 24.04
 
-First I got an Ubuntu VM w/ GPU passthrough going as loosely descibed in [that saga][{{ site.url }}(/docs/gpu-passthrough#ubuntu-passthrough/).
+First I got an Ubuntu VM w/ GPU passthrough going as loosely descibed in [that saga]{{ site.url }}(/docs/gpu-passthrough#ubuntu-passthrough/).
 
 ### Install Waydroid
 
@@ -77,3 +77,23 @@ My last Waydroid VM had a show stopping problem where videos wouldn't play, just
 
 ![video works]({{ site.url }}/images/waydroid/video-works.png)
 
+## Running Standalone w/ Waydroid-Linux-Jammy
+
+Hop on over to the [Waydroid-Linux](https://waydro.id/#wdlinux) beta and grab the latest ISO. I picked `Ubuntu 22.04 KDE-Plasma` but quickly wanted to pivot to `GNOME` since I am on my own for this one and want it to match the setup of the Ubuntu VM above. However, they hosted the ISO on Mega and it immediately said I went over my quota and had to pay $100 to download it or wait 5 hours. Maybe `KDE-Plasma` will be fine...
+
+> If you go with `KDE-Plasma` be careful not to grab the `BlissBass_GO` ISO which seems to be what it links you to initially. 
+
+Before getting started I shut down the Ubuntu + Waydroid VM so the GPU would be available for this new one. Still not sure if it's worth getting a second RX 6400 for this type of thing. Maybe if I used one of these Android VMs regularly so I'd have a second to play around with. 
+
+### Initial Setup
+
+Before fiddling with the GPU I am going to try a mostly default value VM plus `UEFI` for BIOS so I don't get boxed in a corner later. 
+
+Important settings:
+
+* Machine: q35
+* BIOS: OVMF (UEFI)
+* Add EFI Disk Checked
+  * Disk selected
+
+Then right when it boots mash `ESC` and get secure boot off. I tried a `TPM` disk but this one doesn't seem to work unless you disable that. I hit this earlier for another VM, I think with the hackintosh, but [this post](https://forum.proxmox.com/threads/failing-to-boot-home-assistant-qcow2-image-disk-uefi-access-denied.99892/) had the solution.
