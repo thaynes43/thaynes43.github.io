@@ -53,6 +53,8 @@ Which gave me some relief since it was right in the list:
 
 Switching gears to [this guide](https://www.reddit.com/r/homelab/comments/b5xpua/the_ultimate_beginners_guide_to_gpu_passthrough/) I added the modules:
 
+#### Passthrough Modules
+
 ```
 nano /etc/modules
 ```
@@ -73,6 +75,8 @@ echo "options vfio_iommu_type1 allow_unsafe_interrupts=1" > /etc/modprobe.d/iomm
 echo "options kvm ignore_msrs=1" > /etc/modprobe.d/kvm.conf
 ```
 
+#### Driver Blacklist
+
 Then blacklist drivers so proxmox doesn't mess with the GPU:
 
 ```
@@ -92,6 +96,8 @@ Or intel:
 ```
 echo "blacklist i915" >> /etc/modprobe.d/blacklist.conf
 ```
+
+#### Add to VFIO
 
 Then we add it to VFIO:
 
@@ -132,7 +138,7 @@ update-initramfs -u
 
 I think it needs a reboot after. The guide says to run `reset` which just clears the cmd.
 
-### Adding to VM
+### Adding to MacOS VM
 
 Seems too easy but this is what I came up with:
 
@@ -341,7 +347,199 @@ And boom we got a GPU:
 
 However something seemed to break in the fiddling so I may need one more...
 
+## RX 570 
+
+I did some dirty deeds to connect this to the MS-01 which I will post later. Once it was running I was able to map it as a PCIe passthrough for both Widows 11 and MacOS. I didn't seem to need a rom file despite not being able to set the iGPU as the primary boot option in BIOS with it installed as with it installed BIOS was just a blank screen. 
+
+For windows I could get output from the VM direct from the GPU and pass through the USB ports to use it just like a baremetal install. However, I'd get `Error 43` in Device Manager so something wasn't right. 
+
+For mac I could get the GPU through but the monitor would get stuck on the loading bar while nomachine let me log in and see that it was passed through: 
+
+![rx570 details]({{ site.url }}/images/mac/rx570-details.png)
+
+### Adding things the iGPU steps didn't
+
+This node was setup for IOMMU for the iGPU so I was going to try and edit some stuff to see if I could resolve these problems:
+
+Taken from above:
+
+```
+root@pve04:~# echo "options vfio_iommu_type1 allow_unsafe_interrupts=1" > /etc/modprobe.d/iommu_unsafe_interrupts.conf
+root@pve04:~# echo "options kvm ignore_msrs=1" > /etc/modprobe.d/kvm.conf
+root@pve04:~# echo "blacklist amdgpu" >> /etc/modprobe.d/blacklist.conf
+root@pve04:~# echo "blacklist radeon" >> /etc/modprobe.d/blacklist.conf
+root@pve04:~# echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
+root@pve04:~# echo "blacklist nvidia*" >> /etc/modprobe.d/blacklist.conf
+root@pve04:~# echo "blacklist i915" >> /etc/modprobe.d/blacklist.conf
+```
+
+This file was missing:
+
+```
+nano /etc/modprobe.d/kvm-intel.conf
+# Nested VM support
+options kvm-intel nested=1
+```
+
+Then `/etc/modprobe.d/vfio-pci.conf` needed the codes..
+
+```
+root@pve04:~# lspci -n -s 01:00
+01:00.0 0300: 1002:67df (rev ef)
+01:00.1 0403: 1002:aaf0
+```
+
+Then bring em in 
+
+```
+nano /etc/modprobe.d/vfio-pci.conf
+
+options vfio-pci ids=1002:67df,1002:aaf0 disable_vga=1
+# Note that adding disable_vga here will probably prevent guests from booting in SeaBIOS mode
+```
+
+Then apply all those changes:
+
+```
+update-grub
+update-initramfs -k all -u
+reboot
+```
+
+I think the iGPU stuff is conflicting so I'm going to simplify GRUB
+
+`nano /etc/default/grub`
+
+First going back from:
+
+```
+GRUB_DEFAULT="gnulinux-advanced-8b2eb4ef-3076-4676-9210-df8d2ae81f5e>gnulinux-6.5.13-3-pve-advanced-8b2eb4ef-3076-4676-9210-df8d2ae81f5e"
+```
+
+To:
+
+```
+GRUB_DEFAULT=0
+```
+
+But I will leave the iGPU stuff commented out if I want to use it again. Then from:
+
+```
+GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt i915.enable_guc=3 i915.max_vfs=7 rootdelay=10"
+```
+
+To:
+
+```
+GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on rootdelay=10"
+```
+
+Then apply the changes:
+
+```
+update-grub
+shutdown -r now
+```
+
+> **WARNING** every time the kernal changes the network interfaces get messed up
+
 ## RX 6800
 
-Coming soon...
+Ended up hooking this to the MS-01...
 
+### Configuring 
+
+Find PCI Device:
+
+```
+lspci  -v -s  $(lspci | grep ' VGA ' | cut -d" " -f 1)
+```
+
+Find IDs for `vfio-pci.conf`
+
+```
+root@pve04:~# lspci -n -s 03:00
+03:00.0 0300: 1002:73bf (rev c3)
+03:00.1 0403: 1002:ab28
+
+nano /etc/modprobe.d/vfio-pci.conf
+
+options vfio-pci ids=1002:73bf,1002:ab28 disable_vga=1
+# Note that adding disable_vga here will probably prevent guests from booting in SeaBIOS mode
+```
+
+Then apply changes (no idea which is really needed)
+
+```
+update-grub
+update-initramfs -k all -u
+reboot
+```
+
+### Reset Bug
+
+Trying this too:
+
+```
+apt install pve-headers-$(uname -r)
+apt install git dkms build-essential
+git clone https://github.com/gnif/vendor-reset.git
+cd vendor-reset
+dkms install .
+echo "vendor-reset" >> /etc/modules
+update-initramfs -u
+shutdown -r now
+```
+
+### Wrong Kernal Making Life HArd
+
+> Minor problem noticed rebooting - it's stil booting into the wrong Kernal and my interfaces get out of wack
+>
+> I want:
+> Linux 6.8.4-3-pve (2024-05-02T11:55Z)
+> whish should be the 0 index but it's not working: grep menu /boot/grub/grub.cfg
+> WIll try setting `GRUB_DEFAULT="gnulinux-advanced-8b2eb4ef-3076-4676-9210-df8d2ae81f5e>gnulinux-6.8.4-3-pve-advanced-8b2eb4ef-3076-4676-9210-df8d2ae81f5e"` in `/etc/default/grub` instead.
+> Didn't work
+> I will try `proxmox-boot-tool kernel pin 6.8.4-3-pve`
+
+I think pin was the ticket as I got:
+
+```
+root@pve04:~# proxmox-boot-tool kernel pin 6.8.4-3-pve
+Overriding previously pinned version '6.5.13-3-pve' with '6.8.4-3-pve'
+Setting '6.8.4-3-pve' as grub default entry and running update-grub.
+```
+
+Now I will move along and see if I can fix the reset bug:
+
+[reset bug](https://forum.proxmox.com/threads/pci-gpu-passthrough-on-proxmox-ve-8-installation-and-configuration.130218/)
+
+Check with `dmesg | grep vendor_reset` -> works on latest kernal
+
+I think this is triggered when I fiddle with the drivers on windows, better safe than sorry.
+
+
+### AMD Adrenaline DRV64 Error 1723
+
+After setting the RX 6800 as the primary GPU is passes through to Windows no problem but AMD drivers are not great. 
+
+Bunch of errors pop up and installation fails with "DRV64 Error 1723". Googling says to clean out the AMD drivers with `ccleaner` and try clean. However, after rebooting on the uninstall I'm back to Error 43. Could be the reset shit, worth a shot re-installing that given on the Kernal nonsense and rebooting.
+
+
+Worst case here's a [mega hack](https://www.reddit.com/r/Proxmox/comments/v4yagb/comment/ib7wt7t/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button) to try...
+
+```
+/root/fix_gpu_pass.sh
+
+#!/bin/bash
+echo 1 > /sys/bus/pci/devices/0000\:1c\:00.0/remove
+echo 1 > /sys/bus/pci/rescan
+```
+
+Then create a cron job w/ the script:
+
+```
+@reboot  /root/fix_gpu_pass.sh
+```
+
+But gonna go back to the old one and save this for the weekend.
