@@ -110,6 +110,7 @@ defaults:
     values:
       layout: single
       author_profile: true
+      toc: true
       sidebar:
         nav: labnav
   # _posts
@@ -128,6 +129,7 @@ defaults:
       type: pages
     values:
       layout: single
+      toc: true
       sidebar:
         nav: adventuresnav
   # cheatsheets
@@ -136,6 +138,7 @@ defaults:
       type: pages
     values:
       layout: single
+      toc: true
       sidebar:
         nav: sheetsnav
   # hardware
@@ -144,6 +147,7 @@ defaults:
       type: pages
     values:
       layout: single
+      toc: true
       sidebar:
         nav: hardwarenav
   # benchmarks
@@ -152,6 +156,7 @@ defaults:
       type: pages
     values:
       layout: single
+      toc: true
       sidebar:
         nav: benchmarksnav
 
