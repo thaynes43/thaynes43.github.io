@@ -17,7 +17,7 @@ There seems to be two ways to run Waydroid. First is on top of an Ubuntu VM and 
 
 ## Running On Ubuntu 24.04
 
-First I got an Ubuntu VM w/ GPU passthrough going as loosely descibed in [that saga]{{ site.url }}(/docs/gpu-passthrough#ubuntu-passthrough/).
+First I got an Ubuntu VM w/ GPU passthrough going as loosely described in [that saga]{{ site.url }}(/docs/gpu-passthrough#ubuntu-passthrough/).
 
 ### Install Waydroid
 
@@ -97,3 +97,9 @@ Important settings:
   * Disk selected
 
 Then right when it boots mash `ESC` and get secure boot off. I tried a `TPM` disk but this one doesn't seem to work unless you disable that. I hit this earlier for another VM, I think with the hackintosh, but [this post](https://forum.proxmox.com/threads/failing-to-boot-home-assistant-qcow2-image-disk-uefi-access-denied.99892/) had the solution.
+
+KDE wouldn't install but GNOME is good to go. Need GAPPS w/ 
+
+```
+android_id|4128394065748830775
+```

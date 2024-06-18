@@ -57,8 +57,6 @@ Back on my desktop I can now select the mac VM with it's default name that I sho
 
 We need a files first:
 
-
-
 1. Download something like `OpenCoreEFIFolder-v21.zip` from these [releases](https://github.com/thenickdude/KVM-Opencore/releases?ref=klabsdev.com)
 2. Clone [this repo](https://github.com/corpnewt/MountEFI?ref=klabsdev.com)
 
@@ -199,6 +197,8 @@ The [source](https://www.nicksherlock.com/2022/10/installing-macos-13-ventura-on
 
 Before I do I wanted to know what invtsc was. Not much explanation was given but the same acronym was used in an [above section](https://www.nicksherlock.com/2022/10/installing-macos-13-ventura-on-proxmox/) about having a "working TSC". I don't even know if I do, so this might not matter, but I found TSC stood for "Time Stamp Counter". [Wikipedia](https://en.wikipedia.org/wiki/Time_Stamp_Counter) doesn't make it sound relevant to the hardware I am using so I might be worried about nothing.
 
+> **NOTE** It turns out with `+invtsc` you can only migrate the VM when it's shutdown. This is fine for now since I don't need HA.
+
 ### Self Inflicted Problem 1
 
 On my first attempt I realized Proxmox was trying to use my Thunderbolt ring network (__TODO link setup guide__) to migrate from this node but I had only set that up on nodes 1-3. I intentionally moved away from it to the VLAN 10Gb network to add notes 4 and 5. 
@@ -243,9 +243,32 @@ Yes! The eagle has landed:
 
 ![reconfigure ips for vlan]({{ site.url }}/images/proxmox/mac01-migrated.png)
 
-## PBA Problem
+## Automatic Reboot
 
 Day 2 of owning a hackintosh I realized PBA is shutting down the VM to back it up. The hackintosh just sits at a screen waiting for you to press enter by default so I will need to consult [nick sherlock](https://www.nicksherlock.com/2022/10/installing-macos-13-ventura-on-proxmox/) again on how to fix this up!
+
+This is a problem for both my VMs but Ventura is worst since it blocks GPU passthrough (below).
+
+Find EFI:
+```
+diskutil list
+```
+
+Mount it:
+```
+sudo mkdir /Volumes/EFI
+sudo mount -t msdos /dev/disk1s1 /Volumes/EFI
+```
+
+Now edit `/Volumes/EFI/OC/config.plist`:
+
+> Recommend using VSCode for this one since it's huge.
+
+Set a value for `/Misc/Boot/Timeout/ in seconds for how long it waits for you to make a selection:
+
+![mac auto boot]({{ site.url }}/images/mac/mac-auto-boot.png)
+
+__and stop trying to use hotkeys until that is sorted!__
 
 ## GPU
 
@@ -253,11 +276,72 @@ The UI is a bit laggy right now and I'm at 8 cores 20Gb of RAM so I don't think 
 
 ### iGPU
 
-TODO
+Not happening
 
-First I need to expose it to Proxmox using [this guide](https://www.reddit.com/r/Proxmox/comments/14fzj8l/tutorial_full_igpu_passthrough_for_jellyfin/)
+First I need to expose it to Proxmox using [this guide](https://www.reddit.com/r/Proxmox/comments/1ayer8w/intel_gen_12th_iris_xe_vgpu_on_proxmox/).
 
-Then set it up for the vm using [this guide](https://dortania.github.io/OpenCore-Post-Install/gpu-patching/intel-patching/#terminology)
+Then set it up for the vm using something like [this guide](https://dortania.github.io/OpenCore-Post-Install/gpu-patching/intel-patching/#terminology).
 
-### AMD RX 6400 
+But, alas, it wasn't worth the kernal downgrade. See [igpu passthrough]({{ site.url }}/docs/igpu-passthrough/) for the nightmare that is vGPUs and why it's likely I will bother with one on an Iris Xe. 
 
+### AMD RX 570 
+
+After I squared away [automatic reboot](##automatic-reboot) I simply mapped the PCIE devices and it kinda seemed to show up in Ventura:
+
+```
+Display:
+
+  Type:	GPU
+  Bus:	PCIe
+  PCIe Lane Width:	x8
+  Vendor:	AMD (0x1002)
+  Device ID:	0x67df
+  Revision ID:	0x00ef
+```
+
+The device ID matched the hosts:
+
+```
+root@pve04:~# lspci -n -s 01:00
+01:00.0 0300: 1002:67df (rev ef)
+01:00.1 0403: 1002:aaf0
+```
+
+This [guide](https://dortania.github.io/GPU-Buyers-Guide/#a-quick-refresher-with-nvidia-and-web-drivers) says I will need to use [Lilu](https://github.com/acidanthera/Lilu) and [WhateverGreen](https://github.com/acidanthera/WhateverGreen) for it to work properly and even lists some [kext files](https://dortania.github.io/GPU-Buyers-Guide/modern-gpus/amd-gpu.html#polaris-10-and-20-series) I will need to go with those. 
+
+Add the kexts to `/EFI/OC/Kexts` - note they are already there!
+
+### Trying Some Random Config
+
+args: -device isa-applesmc,osk="ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc" -smbios type=2 -device usb-kbd,bus=ehci.0,port=2 -global nec-usb-xhci.msi=off -global ICH9-LPC.acpi-pci-hotplug-with-bridge-support=off -cpu host,vendor=GenuineIntel,+invtsc,+hypervisor,+kvm_pv_unhalt,+kvm_pv_eoi,kvm=off,vmware-cpuid-freq=on
+balloon: 0
+bios: ovmf
+boot: order=virtio0;net0
+cores: 8
+cpu: host,hidden=1,flags=+pcid
+efidisk0: vm-disks:vm-112-disk-0,efitype=4m,pre-enrolled-keys=1,size=528K
+hostpci0: 0000:01:00,pcie=1
+ide0: ISO-Templates:iso/macOS-Sonoma-14.1.1.iso,cache=unsafe,size=16000M
+machine: q35
+memory: 20480
+meta: creation-qemu=8.1.5,ctime=1717904063
+name: mac02
+net0: vmxnet3=BC:24:11:A0:69:A4,bridge=vmbr0,firewall=1
+numa: 0
+ostype: other
+scsihw: virtio-scsi-pci
+smbios1: uuid=931fc13d-1caa-45e3-b042-472a907eb4fc
+sockets: 1
+vga: none
+virtio0: vm-disks:vm-112-disk-1,cache=unsafe,discard=on,iothread=1,size=256G
+vmgenid: 89085a0f-8b1a-4de2-976e-edd86c9b0d09
+
+
+args: -device isa-applesmc,osk="ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc" -smbios type=2 -device usb-kbd,bus=ehci.0,port=2 -global nec-usb-xhci.msi=off -global ICH9-LPC.acpi-pci-hotplug-with-bridge-support=off -cpu Haswell-noTSX,vendor=GenuineIntel,+invtsc,+hypervisor,kvm=on,vmware-cpuid-freq=on
+
+
+### A Tutorial That Never Came
+
+Found [this tutorial](https://elitemacx86.com/threads/how-to-install-macos-on-proxmox-ve-intel-amd-pci-passthrough-guide.1551/page-2) that looked intriguing and highly anticipated. However, the dude is still working on it after many months!
+
+Maybe [this](https://forum.proxmox.com/threads/macos-ventura-stuck-on-apple-logo-1-3-progress-bar-with-gpu-passthrough.122416/page-2) has some answers?

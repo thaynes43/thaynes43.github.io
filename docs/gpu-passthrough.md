@@ -311,7 +311,7 @@ I set that all up and added the GPU as a PCIE device. The VM instantly migrated 
 
 To rule out the two differences I decided to go without the GPU first. It still migrated and wouldn't start, but on the host it migrated to is started. Then it migrated back and started again. Maybe I'll remove this one from HA for now...
 
-This reminded me of another VM I tried to switch the BIOS type on after creation. I ended up nuking that one, not sure how to get the `EFI Disk` working after the fact. MAybe `SeaBIOS` is fine.
+This reminded me of another VM I tried to switch the BIOS type on after creation. I ended up nuking that one, not sure how to get the `EFI Disk` working after the fact. Maybe `SeaBIOS` is fine.
 
 Somehow the display for VNC was "Portrait (Right)" which I think was my fault from an earlier experiment. After much inverted mouse navigation I got it back and shut down to add the GPU.
 
@@ -491,6 +491,37 @@ update-initramfs -u
 shutdown -r now
 ```
 
+> [This guy](https://github.com/gnif/vendor-reset/issues/46#issuecomment-1412023286) says to put `vendor-reset` at the top of the modules!
+
+> And [This guy](https://github.com/gnif/vendor-reset/issues/46#issuecomment-1295482826) says you need a script and the first guy agrees! 
+
+Need to run this command:
+
+```
+echo 'device_specific' > /sys/bus/pci/devices/0000\:03\:00.0/reset_method
+```
+
+1. Add to script here `/var/lib/vz/gpu-vendor-reset-method.sh`
+2. Add the codeblock below to `/etc/systemd/system/gpu-vendor-reset-method.service`
+
+```
+[Unit]
+Description=Set the AMD GPU reset method to 'device_specific'
+After=default.target
+
+[Service]
+ExecStart=/bin/bash /var/lib/vz/gpu-vendor-reset-method.sh
+
+[Install]
+WantedBy=default.target
+```
+
+3. Activate it with `systemctl enable gpu-vendor-reset-method.service`
+4. Reboot
+5. Check `systemctl status gpu-vendor-reset-method.service`
+
+Check with `dmesg | grep vendor_reset`
+
 ### Wrong Kernal Making Life HArd
 
 > Minor problem noticed rebooting - it's stil booting into the wrong Kernal and my interfaces get out of wack
@@ -532,7 +563,7 @@ Worst case here's a [mega hack](https://www.reddit.com/r/Proxmox/comments/v4yagb
 /root/fix_gpu_pass.sh
 
 #!/bin/bash
-echo 1 > /sys/bus/pci/devices/0000\:1c\:00.0/remove
+echo 1 > /sys/bus/pci/devices/0000\:01\:00.0/remove
 echo 1 > /sys/bus/pci/rescan
 ```
 
@@ -543,3 +574,14 @@ Then create a cron job w/ the script:
 ```
 
 But gonna go back to the old one and save this for the weekend.
+
+## RX 570
+
+root@pve04:~# lspci -n -s 01:00
+01:00.0 0300: 1002:67df (rev ef)
+01:00.1 0403: 1002:aaf0
+
+nano /etc/modprobe.d/vfio-pci.conf
+
+options vfio-pci ids=1002:67df,1002:aaf0 disable_vga=1
+# Note that adding disable_vga here will probably prevent guests from booting in SeaBIOS mode
