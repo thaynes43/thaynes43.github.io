@@ -522,7 +522,7 @@ WantedBy=default.target
 
 Check with `dmesg | grep vendor_reset`
 
-### Wrong Kernal Making Life HArd
+### Wrong Kernal Making Life Hard
 
 > Minor problem noticed rebooting - it's stil booting into the wrong Kernal and my interfaces get out of wack
 >

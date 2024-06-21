@@ -119,6 +119,72 @@ This got me in! Now for a Raid0 ZFS install!
 
 Much easier to install on Raid0 for the NVMes than with Debian. Unifi is freaking out about duplicate IPs but I should be able to sort the networking stuff out after.
 
-Networking, however, is being a nightmare but most likely UniFi nonsense
+Networking, however, is being a nightmare but most likely partially UniFi nonsense. 
 
-/etc/hosts needs to match?
+First I tried to delete the old record in unifi from Debian but it just kept coming back. So I switched the IP and that got me further but the steps were learn as you go...
+
+1. First you just change it in the bridge
+2. Then `/etc/hosts` needs to match the IP
+3. The kicker was `/etc/resolve.conf` was wrong so I couldn't resolve any hostnames 
+
+#### Join The Family
+
+Time to join the cluster again (after booting the debian frankenmonster)! Hope the last one didn't screw me.
+
+Now to not confused like I was before. This node has ZFS while everyone use uses a local lvm. I need to adjust for this in `Datacenter` -> `Storage`
+
+First remove HaynesAI from `local-lvm`:
+
+![config local lvm]({{ site.url }}/images/builds/proxmox/config-local-lvm.png)
+
+But now we need to get ZFS back. Go `Datacenter -> Storage -> Add` and configure:
+
+![add zfs]({{ site.url }}/images/builds/proxmox/add-zfs.png)
+
+And storage looks great! I also installed Ceph to view those metrics but the storage devices looked fine without needing to do this. 
+
+#### GPU Passthrough 
+
+Whole point of this monster is the powerhouse of GPUs it punches. [This guide](https://www.reddit.com/r/homelab/comments/b5xpua/the_ultimate_beginners_guide_to_gpu_passthrough/) had some risky clicks but is good in a pinch again.
+
+Both GPUs are showing up in my devices and are ready to be configured:
+
+```
+root@HaynesIntelligence:~# lspci -v | grep NVIDIA
+01:00.0 VGA compatible controller: NVIDIA Corporation GA102 [GeForce RTX 3090] (rev a1) (prog-if 00 [VGA controller])
+01:00.1 Audio device: NVIDIA Corporation GA102 High Definition Audio Controller (rev a1)
+41:00.0 VGA compatible controller: NVIDIA Corporation GA102 [GeForce RTX 3090] (rev a1) (prog-if 00 [VGA controller])
+41:00.1 Audio device: NVIDIA Corporation GA102 High Definition Audio Controller (rev a1)
+```
+
+Then we need the vendor IDs:
+
+```
+lspci -n -s 01:00
+01:00.0 0300: 10de:2204 (rev a1)
+01:00.1 0403: 10de:1aef (rev a1)
+
+lspci -n -s 41:00
+41:00.0 0300: 10de:2204 (rev a1)
+41:00.1 0403: 10de:1aef (rev a1)
+```
+Then we add them to vfio.conf (actually creating the config I believe):
+
+```
+echo "options vfio-pci ids=10de:2204,10de:1aef disable_vga=1"> /etc/modprobe.d/vfio.conf
+```
+
+#### Double the Games
+
+For a fun test I am going to try and spin two Windows 11 VMs up, one per GPU, and play two games at once to see if I blow a fuse. 
+
+Windows VMs were set up no problem. Goal is to try and pass one Bluetooth and connect to the TV and the other KB&M and connect to my gross monitor.
+
+Also, I've only played offline stuff in my GPU tests prior but it would be fun to play something online with another person. Running on a VM seems to run some risks, unfortuantly [this guide](https://forum.proxmox.com/threads/windows-11-vm-for-gaming-setup-guide.137718/) shows how I f'd that up in creating the VMs with settings that added Qemu guest agent / virtio drivers. 
+
+
+## NAS
+
+Proxmox can handle [ZFS](https://pve.proxmox.com/wiki/ZFS_on_Linux) right out of the box but people also like to [pass disks](https://pve.proxmox.com/wiki/Passthrough_Physical_Disk_to_Virtual_Machine_(VM)) into a TrueNAS VM. However, this isn't ideal and people recommend passing entire LSI HBAs into TrueNAS - this method passes QEMU devices.
+
+Another good option is to use OpenMediaVault or [Cockpit](https://blog.kye.dev/proxmox-cockpit) to manage ZFS on Proxmox from an LXC. I will likely go this route. 
