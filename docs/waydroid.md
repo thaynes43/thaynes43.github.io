@@ -103,3 +103,22 @@ KDE wouldn't install but GNOME is good to go. Need GAPPS w/
 ```
 android_id|4128394065748830775
 ```
+
+
+#### Sound problem
+
+Some PipWire thing was used and the [nomachine KB](https://kb.nomachine.com/AR07T01168) says you need Pipwire. Doing something like this but not quite got me there but still no Waydroid sound.
+
+Editing `/usr/NX/etc/node.cfg` and switch:
+
+```
+#AudioInterface pipewire
+AudioInterface pulseaudio
+```
+Then restart nxserver:
+
+```
+sudo /usr/NX/bin/nxserver --restart
+```
+
+[This reply](https://askubuntu.com/questions/1456849/ubuntu-22-04-remote-desktop-rdp-no-sound) makes it sound like the version of ubuntu actually needs pipwire installed!
