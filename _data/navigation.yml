@@ -54,8 +54,8 @@ hardwarenav:
         url: /hardware/haynestower/     
       - title: MS-01
         url: /hardware/ms-01/
-      - title: HaynesAI
-        url: /hardware/haynesai/
+      - title: Haynes Intelligence
+        url: /hardware/haynesintelligence/
 
 adventuresnav:
   - title: Adventures

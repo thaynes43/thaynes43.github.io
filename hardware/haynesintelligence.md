@@ -1,6 +1,6 @@
 ---
-title: HaynesAI
-permalink: /hardware/haynesai/
+title: HaynesIntelligence 
+permalink: /hardware/haynesintelligence/
 ---
 
 I wanted to play with GPUs for LLMs. My main goal was to have a local LLM integrated into [Home Assistant](https://www.home-assistant.io/) so I could do my own thing without paying API fees or upcoming voice assistant subscriptions. I decided to do a Threadripper build with Dual 3090s.  
@@ -86,3 +86,22 @@ Interestlingly I can only pull around 1440W from a 15A 120V breaker so this PSU 
 ## The Build
 
 Coming Soon.. Still waiting on the case! 
+
+## OS 
+
+### Proxmox With a Twist
+
+The proxmox boot usb I'd been using refused to boot for this build. When googling the error it sounded driver related and it was recommended I use Debian 12 and install Proxmox on top. Proxmox has an [official doc](https://pve.proxmox.com/wiki/Install_Proxmox_VE_on_Debian_12_Bookworm) on how to get that done.
+
+#### Raid 0 with Debian
+
+There are half a million guides on this, like [here](https://tuxfixer.com/debian-installation-with-lvm-raid-1-and-hot-spare/) I didn't have much luck with them, probably because I had no idea what I was doing. They were also all for `Raid 1` but here I'd prefer space to redundancy as I have plenty of redundent options and backups in place. I was thinking of this space more as the cache pool on [HaynesTower]]({{ site.url }}/hardware/haynestower/) (todo can link to cache pool info).
+
+I ended up using the guided partition on one drive, then converting the largest partition it created to raid. Then I added a raid partition on the second drive. I then created an MD Raid 0 with both raid partitions and it seemed to work. 
+
+#### No local-lvm Storage on Proxmox
+
+I can't seem to use the partition Debian is installed on in Proxmox so I am circling back to make a smaller partition just for that and then split up the rest of the disk for Proxmox.
+
+
+
