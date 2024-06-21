@@ -122,3 +122,9 @@ sudo /usr/NX/bin/nxserver --restart
 ```
 
 [This reply](https://askubuntu.com/questions/1456849/ubuntu-22-04-remote-desktop-rdp-no-sound) makes it sound like the version of ubuntu actually needs pipwire installed!
+
+##### Debugging Pipwire
+
+Pipwire is actually running on the `ubundroid` and `waydroid01` where it works fine via the passed in HDMI audio device!
+
+Seems messed up so maybe the best bet is to use the ubuntu + waydroid install and figure out how to make it fullscreen instead of maximized

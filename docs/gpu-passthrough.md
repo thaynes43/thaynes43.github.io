@@ -585,3 +585,5 @@ nano /etc/modprobe.d/vfio-pci.conf
 
 options vfio-pci ids=1002:67df,1002:aaf0 disable_vga=1
 # Note that adding disable_vga here will probably prevent guests from booting in SeaBIOS mode
+
+I couldn't get my iGPU Windows VM to not error 43 on the 570 but a fresh Windows VM worked fine after windows updates.

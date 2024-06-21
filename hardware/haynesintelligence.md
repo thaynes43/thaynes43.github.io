@@ -103,5 +103,22 @@ I ended up using the guided partition on one drive, then converting the largest 
 
 I can't seem to use the partition Debian is installed on in Proxmox so I am circling back to make a smaller partition just for that and then split up the rest of the disk for Proxmox.
 
+### Pivot Back to Proxmox Baremetal
 
+Just for kicks I made a new proxmox boot drive but we are still stuck on loading drivers...
 
+BUT WAIT!
+
+```
+At the boot screen Install Proxmox should be selected/highlighted, press "e"
+
+delete quiet "splash = silent" and replace with "nomodeset"
+```
+
+This got me in! Now for a Raid0 ZFS install!
+
+Much easier to install on Raid0 for the NVMes than with Debian. Unifi is freaking out about duplicate IPs but I should be able to sort the networking stuff out after.
+
+Networking, however, is being a nightmare but most likely UniFi nonsense
+
+/etc/hosts needs to match?
