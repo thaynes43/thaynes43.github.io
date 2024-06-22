@@ -182,6 +182,58 @@ Windows VMs were set up no problem. Goal is to try and pass one Bluetooth and co
 
 Also, I've only played offline stuff in my GPU tests prior but it would be fun to play something online with another person. Running on a VM seems to run some risks, unfortuantly [this guide](https://forum.proxmox.com/threads/windows-11-vm-for-gaming-setup-guide.137718/) shows how I f'd that up in creating the VMs with settings that added Qemu guest agent / virtio drivers. 
 
+Getting into windows with the GPU worked right off the bat. Going for the new NVidia app but windows update installed drivers that work fine. 
+
+Next was to re-name the PC and enable RDP so I could get in without a physical monitor.
+
+Then Steam to see what this half of the server could do. Not sure what onlines games that are taxing are out there for VMs... Can always use 3DMark.
+
+##### Steel Nomad
+
+The first test that popped up was called steel nomad. I deciced to try it on each GPU and then both at once.
+
+Side 1:
+
+![steel nomad 1]({{ site.url }}/images/builds/proxmox/steel-nomad-3090-01.png)
+
+Side 2:
+
+![steel nomad 1]({{ site.url }}/images/builds/proxmox/steel-nomad-3090-02.png)
+
+Then I realized I'd need two steam accounts to play the same game twice! Going to move on to Epic where I have two accounts.
+
+##### Bluetooth
+
+Passing the on board bluetooth in wasn't trivial. For some reaon once I passed in the Wireless stuff I couldn't remote in so I removed the GPU while I set things up.
+
+1. Pass a USB wireless device
+2. Pass a PCI wireless device
+3. Boot and see none of them work
+4. Install drivers from mobo website and celebrate
+
+##### GTAV
+
+Picture
+
+Worked Great
+
+##### EasyAntiCheat
+
+This guy got it working [here](https://forum.proxmox.com/threads/anti-cheat-kvm-settings.121249/).
+
+```
+ADD: args: -cpu host,-hypervisor,kvm=off
+
+FROM: scsihw: virtio-scsi-single
+TO: scsihw: lsi
+
+FROM: net0: virtio=BC:24:11:A7:76:EF,bridge=vmbr0,firewall=1
+TO: net0: virtio=A9:1D:EB:BE:5C:A2,bridge=vmbr0,firewall=1
+```
+
+Then it says to just change `smbios1: uuid=3ed1de2d-4eff-4eb6-bd2b-7f9dde130c77` so I will go `smbios1: uuid=3ed1de2d-4eff-4eb6-bd2b-7f9dde130c78`
+
+
 
 ## NAS
 
