@@ -213,7 +213,7 @@ Passing the on board bluetooth in wasn't trivial. For some reaon once I passed i
 
 ##### GTAV
 
-Picture
+TODO Picture
 
 Worked Great
 
@@ -221,19 +221,45 @@ Worked Great
 
 This guy got it working [here](https://forum.proxmox.com/threads/anti-cheat-kvm-settings.121249/).
 
+This guy has about the same advice on [reddit here](https://www.reddit.com/r/Proxmox/comments/1cq87xc/easy_anticheat_cannot_run_under_virtual_machine/)
+
 ```
 ADD: args: -cpu host,-hypervisor,kvm=off
 
-FROM: scsihw: virtio-scsi-single
-TO: scsihw: lsi
-
 FROM: net0: virtio=BC:24:11:A7:76:EF,bridge=vmbr0,firewall=1
-TO: net0: virtio=A9:1D:EB:BE:5C:A2,bridge=vmbr0,firewall=1
+TO: net0: e1000=BC:24:11:65:53:AA,bridge=vmbr0,firewall=1
+
+Then FAKE Intel with prefix 00:AA:02
+Generated as: 00:AA:02:A6:AB:FC and replacing what is above
 ```
 
-Then it says to just change `smbios1: uuid=3ed1de2d-4eff-4eb6-bd2b-7f9dde130c77` so I will go `smbios1: uuid=3ed1de2d-4eff-4eb6-bd2b-7f9dde130c78`
+LSI is tricky, you can't just do this:
 
+```
+FROM: scsihw: virtio-scsi-single
+TO: scsihw: lsi
+```
 
+You need to detatch the disk and then readd it as a SATA drive before lsi will boot.
+
+Then it says to fill in the bios info. I just made it all match the output of `dmidecode --type 1`
+
+##### Already out of disk space
+
+GTAV was huge so I needed to double my diskspace. Getting the space into C:\ required some fanagling. 
+
+Resize the partition via disk manager after doing it in proxmox. This requires deleting the recovery partition since it was in the middle. 
+
+```
+diskpart
+list disk
+select disk <number>
+list partition
+select partition <number>
+delete partition override
+```
+
+bingo bango that worked
 
 ## NAS
 
