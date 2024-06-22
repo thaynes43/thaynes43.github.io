@@ -17,6 +17,22 @@ systemctl reboot
 ifreload -a
 ```
 
+### After Editing Grub File
+
+After you edit `/etc/default/grub` you run the following and then reboot.
+
+#### For Regular Installs
+
+```
+update-grub
+```
+
+#### For ZFS Installs
+
+```
+pve-efiboot-tool refresh
+```
+
 ## ceph
 
 ### Archive crash warnings

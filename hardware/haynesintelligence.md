@@ -286,6 +286,11 @@ While installing Fortnite I noticed __epic__ write speeds:
 
 ![epic write]({{ site.url }}/images/builds/haynesai/epic-write-speeds.png)
 
+And it worked! At least I got into the game, but before I play I want a second controller.
+
+##### USB Trouble
+
+One of the USB ports is acting weird and I only have three. I'm going to see if it's a power saving thing like described [here](https://danielbrennand.com/blog/proxmox-fix-usb-disconnect/) but if not I can always connect the front USB port up to the motherboard and try it.
 
 ## NAS
 
