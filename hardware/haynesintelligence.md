@@ -229,7 +229,7 @@ ADD: args: -cpu host,-hypervisor,kvm=off
 FROM: net0: virtio=BC:24:11:A7:76:EF,bridge=vmbr0,firewall=1
 TO: net0: e1000=BC:24:11:65:53:AA,bridge=vmbr0,firewall=1
 
-Then FAKE Intel with prefix 00:AA:02
+Then FAKE Intel with prefix 00:AA:02 using [online generator](https://dnschecker.org/mac-address-generator.php)
 Generated as: 00:AA:02:A6:AB:FC and replacing what is above
 ```
 
@@ -242,7 +242,24 @@ TO: scsihw: lsi
 
 You need to detatch the disk and then readd it as a SATA drive before lsi will boot.
 
+```
+FROM: scsi0: local-zfs:vm-119-disk-1,iothread=1,size=512G
+TO: sata0: local-zfs:vm-119-disk-1,cache=writeback,size=512G
+```
+
 Then it says to fill in the bios info. I just made it all match the output of `dmidecode --type 1`
+
+```
+System Information
+        Manufacturer: To Be Filled By O.E.M.
+        Product Name: TRX50 WS
+        Version: To Be Filled By O.E.M.
+        Serial Number: To Be Filled By O.E.M.
+        UUID: 51006b9c-5242-0000-0000-000000000000
+        Wake-up Type: Power Switch
+        SKU Number: To Be Filled By O.E.M.
+        Family: To Be Filled By O.E.M.
+```
 
 ##### Already out of disk space
 
@@ -260,6 +277,15 @@ delete partition override
 ```
 
 bingo bango that worked
+
+##### Fortnite Take Two
+
+In a last ditch attempt I took all I applied and reimaged the VMs w/ a fresh copy of windows. Fortnite is the only game my son will play with me so it was the best chance at giving a tech demo with the two gaming VMs before moving on to the LLM which will steal the GPUs away.
+
+While installing Fortnite I noticed __epic__ write speeds:
+
+![epic write]({{ site.url }}/images/builds/haynesai/epic-write-speeds.png)
+
 
 ## NAS
 
