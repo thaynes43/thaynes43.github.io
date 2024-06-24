@@ -74,6 +74,7 @@ sudo apt-get remove <what you installed>
 ## SCP
 
 ### Copy from Local to Remote
+
 ```
 scp file.txt remote_username@192.168.0.100:/remote/directory
 ```

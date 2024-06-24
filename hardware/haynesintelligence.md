@@ -297,3 +297,16 @@ One of the USB ports is acting weird and I only have three. I'm going to see if 
 Proxmox can handle [ZFS](https://pve.proxmox.com/wiki/ZFS_on_Linux) right out of the box but people also like to [pass disks](https://pve.proxmox.com/wiki/Passthrough_Physical_Disk_to_Virtual_Machine_(VM)) into a TrueNAS VM. However, this isn't ideal and people recommend passing entire LSI HBAs into TrueNAS - this method passes QEMU devices.
 
 Another good option is to use OpenMediaVault or [Cockpit](https://blog.kye.dev/proxmox-cockpit) to manage ZFS on Proxmox from an LXC. I will likely go this route. 
+
+> The web says you need to configure the BIOS for Slim SAS to use SATA over PCIE
+
+Fair warning here too: 
+
+```
+When you do PCIe passthrough, the whole IOMMU group gets passed through, since your HBA seems to be in group 0 along with a bunch of probably chipset stuff, the whole chipset gets passed through to the VM.
+
+Enabling ACS will put each device in its own group so you can passthrough it individually, hopefully there's a setting in your BIOS, but if not you can put pcie_acs_override=downstream,multifunction in your GRUB CMDLINE.
+```
+
+TODO what are these [helper scripts](https://tteck.github.io/Proxmox/#proxmox-ve-processor-microcode)
+

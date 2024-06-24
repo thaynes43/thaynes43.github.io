@@ -75,6 +75,10 @@ adventuresnav:
         url: /docs/waydroid/
       - title: TODO Backup Strategy
         url: /docs/backup-strat/
+      - title: POP!_OS
+        url: /docs/pop-os/
+      - title: Host Monitoring
+        url: /docs/host-monitoring/
 
 sheetsnav:
   - title: Cheat Sheets
