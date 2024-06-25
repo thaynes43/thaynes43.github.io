@@ -108,6 +108,23 @@ Once we move I will set up InnerSpace for the new house's coverage and use the p
 
 * [Pop!_OS](https://pop.system76.com/) recommended for hosting [ollama](https://ollama.com/)
 
+#### AI LINKS
+
+* https://medium.com/@vndee.huynh/build-your-own-rag-and-run-it-locally-langchain-ollama-streamlit-181d42805895
+  * https://github.com/vndee/local-rag-example
+* https://github.com/open-webui/helm-charts/tree/main/charts/open-webui
+* https://github.com/tloen/alpaca-lora
+  * https://github.com/tloen/alpaca-lora/issues/8#issuecomment-1477490259
+* https://pytorch.org/
+* https://github.com/yurijmikhalevich/rclip
+* https://immich.app/
+* https://r2r-docs.sciphi.ai/cookbooks/local-rag
+* https://www.reddit.com/r/LocalLLaMA/comments/1dltq6o/best_rag_libraries_for_chunking_embedding_and/
+* https://github.com/hiyouga/LLaMA-Factory
+* https://huggingface.co/datasets
+* https://github.com/modelscope/modelscope
+* 
+
 ### C# / App Development
 
 #### Convert HEIC Photos and Transfer to Plex
