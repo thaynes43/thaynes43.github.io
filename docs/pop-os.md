@@ -97,7 +97,28 @@ GPU Issue:
 sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm
 ```
 
-#### So Many
+#### Rebooting Breaks GPU
+
+```
+In the meanwhile, if you want to switch back to using the GPU after resuming from a suspend, you can reload the nvidia_uvm:
+
+First stop the service:
+systemctl stop ollama
+
+Reload nvidia_uvm:
+sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm
+
+Then restart the service:
+systemclt start ollama
+
+That should allow you to run a model again on the GPU.
+```
+
+This was taken from a [github bug](https://github.com/ollama/ollama/issues/3489#issuecomment-2094665760) that inspired additions to ollama's [troubleshooting guide](https://github.com/ollama/ollama/blob/main/docs/troubleshooting.md#container-fails-to-run-on-nvidia-gpu). 
+
+TODO try this
+
+#### So Many Models
 
 Here are a few ready to go. Even an uncensored one!
 

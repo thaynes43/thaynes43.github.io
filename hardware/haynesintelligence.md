@@ -292,6 +292,12 @@ And it worked! At least I got into the game, but before I play I want a second c
 
 One of the USB ports is acting weird and I only have three. I'm going to see if it's a power saving thing like described [here](https://danielbrennand.com/blog/proxmox-fix-usb-disconnect/) but if not I can always connect the front USB port up to the motherboard and try it.
 
+## AI Time
+
+I've documented the initial setup and usage for the LLMs over at [Pop!_OS]({{ site.url }}/docs/pop-os/). You can see that when prompting a 70B LLM this build is a powerhungry beast:
+
+![llm power consumption]({{ site.url }}/images/builds/haos/llm-power-consumption.png)
+
 ## NAS
 
 Proxmox can handle [ZFS](https://pve.proxmox.com/wiki/ZFS_on_Linux) right out of the box but people also like to [pass disks](https://pve.proxmox.com/wiki/Passthrough_Physical_Disk_to_Virtual_Machine_(VM)) into a TrueNAS VM. However, this isn't ideal and people recommend passing entire LSI HBAs into TrueNAS - this method passes QEMU devices.
