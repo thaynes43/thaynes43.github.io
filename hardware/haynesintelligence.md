@@ -316,3 +316,186 @@ Enabling ACS will put each device in its own group so you can passthrough it ind
 
 TODO what are these [helper scripts](https://tteck.github.io/Proxmox/#proxmox-ve-processor-microcode)
 
+### Creating The Pool
+
+Creating the pool was very easy. From the proxmox UI just click on the node -> Disks -> ZFS -> Create ZFS and fill out the form. I selected lz4 as TrueNAS recommends it and went with RAIDZ for single disk fault tolerance. RAIDZ2 for two disk tolerance was tempting but I don't ever plan to expand this past 10 disks. After I had this: 
+
+![raidz1 tank]({{ site.url }}/images/builds/proxmox/raidz1-tank.png)
+
+### Mapping
+
+Now we need a way to map it into the LXC that will manage shares.
+
+#### Create Dataset
+
+I am going to name my dataset data_root:
+
+```
+zfs create tank/data_root
+```
+
+#### Map to a user on host
+
+> **NOTE** This went bad for me due to id ranges. 
+
+```
+root@HaynesIntelligence:~/workspace# cat /etc/subuid
+root:100000:65536
+
+root@HaynesIntelligence:~/workspace# cat /etc/subgid
+root:100000:65536
+```
+
+Both of what was in the guide are out of the range and I don't get what this shit really means.
+
+Now a user - first on the host:
+
+```
+groupadd -g 110000 nas_shares
+
+useradd nas -u 101000 -g 110000 -m -s /bin/bash
+
+chown -R nas:nas_shares /tank/data_root/
+```
+
+Check:
+
+```
+root@HaynesIntelligence:/tank# ls -l
+total 1
+drwxr-xr-x 2 nas nas_shares 2 Jun 26 08:36 data_root
+```
+
+It didn't like the uid:
+
+```
+root@HaynesIntelligence:~# useradd nas -u 101000 -g 110000 -m -s /bin/bash
+useradd warning: nas's uid 101000 outside of the UID_MIN 1000 and UID_MAX 60000 range.
+```
+
+> **DO NOT** clean out `nano /etc/subuid` by deleting `root:100000:65536`. Just let it ride
+
+```
+root@HaynesIntelligence:~# cat /etc/passwd
+nas:x:101000:110000::/home/nas:/bin/bash
+```
+
+#### Creating & Configuring LXC
+
+##### Screw Up
+
+Using the [helper script](https://tteck.github.io/Proxmox/#debian-lxc) I hit an error that is almost certainly caused by the things I did for the new user on the datapool. This command won't let me create an LXC:
+
+lxc-usernsexec -m u:0:100000:65536 -m g:0:100000:65536 -- tar xpf - --zstd --totals --one-file-system -p --sparse --numeric-owner --acls --xattrs '--xattrs-include=user.*' '--xattrs-include=security.capability' '--warning=no-file-ignored' '--warning=no-xattr-write' -C /var/lib/lxc/121/rootfs --skip-old-files --anchored --exclude './dev/*'
+
+bash: line 182: exit: A problem occured while trying to create container.: numeric argument required
+
+Maybe the user, going to `userdel -r nas`.
+
+But on further inspection I see it's the new group:
+
+```
+extracting archive '/mnt/pve/ISO-Templates/template/cache/debian-12-standard_12.2-1_amd64.tar.zst'
+lxc 20240626132532.726 ERROR    idmap_utils - ../src/lxc/idmap_utils.c:lxc_map_ids:245 - newuidmap failed to write mapping "newuidmap: uid range [0-65536) -> [100000-165536) not allowed": newuidmap 8410 0 100000 65536
+Failed to write id mapping for child process
+lxc 20240626132532.726 ERROR    utils - ../src/lxc/utils.c:lxc_drop_groups:1570 - Operation not permitted - Failed to drop supplimentary groups
+lxc 20240626132532.726 ERROR    utils - ../src/lxc/utils.c:lxc_switch_uid_gid:1545 - Invalid argument - Failed to switch to gid 0
+
+TASK ERROR: unable to create CT 121 - command 'lxc-usernsexec -m u:0:100000:65536 -m g:0:100000:65536 -- tar xpf - --zstd --totals --one-file-system -p --sparse --numeric-owner --acls --xattrs '--xattrs-include=user.*' '--xattrs-include=security.capability' '--warning=no-file-ignored' '--warning=no-xattr-write' -C /var/lib/lxc/121/rootfs --skip-old-files --anchored --exclude './dev/*'' failed: exit code 1
+```
+
+Remove and verify:
+
+```
+groupdel -f nas_shares
+cat /etc/group
+```
+
+Final thing is checking out cleaning up the owner of the dataset:
+
+```
+root@HaynesIntelligence:/tank# ls -l
+total 1
+drwxr-xr-x 2 root root 2 Jun 26 08:36 data_root
+```
+
+Got it back to root with `chown root:root /tank/data_root/`. However I think I messed up the `subuid` fix by adding a `subid` file:
+
+```
+root@HaynesIntelligence:/etc# cat subid
+root:100000:65536
+```
+
+And that was it! Deleting that line screwed me!
+
+##### LXC After Fix
+
+Once fixed the [helper script](https://tteck.github.io/Proxmox/#debian-lxc) worked flawlessly. I configured:
+
+* 128G disk
+* 4 cores
+* 4096 RAM
+
+Next is to add the share to the LXC:
+
+```
+groupadd -g 10000 nas_shares
+useradd nasusr -u 1000 -g 10000 -m -s /bin/bash 
+```
+
+Verify:
+
+```
+root@nas01:~# cat /etc/passwd | grep nasusr
+nasusr:x:1000:10000::/home/nasusr:/bin/bash
+```
+
+Now shut down to mount the dataset
+
+##### Finishing Touches
+
+On the host shell run this for your LXC's ID:
+
+```
+pct set 121 -mp0 /tank/data_root,mp=/mnt/data_root
+```
+
+The UI has a way to do this to but you can verify the command worked via node -> Resources
+
+![zfs lxc mountpoint]({{ site.url }}/images/builds/proxmox/zfs-lxc-mountpoint.png)
+
+And rebooting we can see the pool is mounted!
+
+```
+root@nas01:/mnt# ls
+data_root
+```
+
+#### SMB Shares With Cockpit
+
+For Cockpit we will continue to follow [this guide](https://blog.kye.dev/proxmox-cockpit).
+
+```
+apt update && apt dist-upgrade -y
+
+# Install Cockpit
+apt install cockpit --no-install-recommends
+
+# Install the necessary extensions (check for new versions, if you like)
+wget https://github.com/45Drives/cockpit-file-sharing/releases/download/v3.3.7/cockpit-file-sharing_3.3.7-1focal_all.deb
+wget https://github.com/45Drives/cockpit-navigator/releases/download/v0.5.10/cockpit-navigator_0.5.10-1focal_all.deb
+wget https://github.com/45Drives/cockpit-identities/releases/download/v0.1.12/cockpit-identities_0.1.12-1focal_all.deb
+
+# Install them
+apt install ./*.deb -y
+
+# Cleanup the installers
+rm *.deb
+```
+
+I updated the file-shareing plugin version but the rest were the latest already. The install threw some warnings but I let it ride since last time trying to fix things was worst.
+
+Fortunatly no suprised were left. Once I logged into the nice web UI I was able to create users and shares as the guide suggested. On;y thing not in the guide was giving users permission to write vs. just the shares owner. Once I did that I was able to copy an ISO into it super fast.
+
+![new nas01 share]({{ site.url }}/images/builds/proxmox/new-nas01-share.png)
+

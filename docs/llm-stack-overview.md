@@ -1,0 +1,114 @@
+
+## Ollama
+
+[Ollama](https://ollama.com/) is very popular for easily running various models. It has to be on a beefy server with GPU(s) to be performant and can use a ton of power just with simple prompts.
+
+Right now this is running locally on [HaynesIntelligence]({{ site.url }}/hardware/haynesintelligence/)'s [Pop!_OS]({{ site.url }}/docs/pop-os/) VM.
+
+[Helm Chart](https://github.com/otwld/ollama-helm/#helm-values) is available if I want to get really fancy. It can also run in [Docker](https://registry.hub.docker.com/r/ollama/ollama#!) but for now I'm keeping it as simple as possible since GPU passthrough is already being weird.
+
+### Ollama Stops Using GPUs
+
+I noticed that rebooting the VM made it so `ollama` only used CPU. This has not happened since I followed [these steps](https://support.system76.com/articles/cuda/) to update cuda though it's still a weird old version (11.15) which won't work with PyTorch. 
+
+I commented about this on a bug recently created and was pointed [here](https://github.com/ollama/ollama/blob/main/docs/troubleshooting.md#container-fails-to-run-on-nvidia-gpu). This reset procedure also seems promising if it happens again:
+
+```
+systemctl stop ollama
+sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm
+systemclt start ollama
+```
+
+## Open-WebUI
+
+[Open-WebUI](https://docs.openwebui.com/) is the front end people use for ollama. [Helm charts](https://github.com/open-webui/helm-charts)
+
+I copied `values.yaml` into `localvalues.yaml` and made the modifications I think are needed:
+
+1. Turn off the piece that installs the `ollama` chart
+2. Configure `ollama's` address as `192.168.0.85:11434`
+3. Change the port to `8081` since I don't want to use anything as my `80` port
+
+Some chatter online about needing a reverse proxy but I'm going to give this a whirl first.
+
+Since I don't know if this will add a namespace I'm going to try the commands in the default one. `kubens default` for that.
+
+```
+helm repo add open-webui https://helm.openwebui.com/
+helm repo update
+```
+
+```
+helm upgrade --install open-webui open-webui/open-webui --values localvalues.yaml
+```
+
+And it did go into `default`:
+
+```
+thaynes@kubevip:~/workspace/open-webui$ kubectl get pods
+NAME                                    READY   STATUS    RESTARTS   AGE
+open-webui-0                            0/1     Pending   0          26s
+open-webui-pipelines-6d54bfdf4d-4qj2k   0/1     Pending   0          26s
+
+```
+
+http://kubevip.haynesnetwork:8081
+If it goes bad:
+
+```
+helm delete open-webui 
+```
+
+Went bad quick:
+
+```
+thaynes@kubevip:~/workspace/open-webui$ helm delete open-webui
+release "open-webui" uninstalled
+```
+
+I believe the problem simply lies in my values package. There is a pvc it wants but it doesn't know the storage class, `ceph-rbd` is ready to go thankfully!
+
+That that the pvc going:
+
+```
+  Normal   SuccessfulAttachVolume  37s   attachdetach-controller  AttachVolume.Attach succeeded for volume "pvc-8aa70f5c-ad68-4256-a15e-f77800368f59"
+```
+
+Now it's up but I can't connect. The pipelines thing is also looking for a pvc, since I don't need that right now I'm going to try disabling and running again.
+
+The config it's loading seems to disable it from accessing the internet. Someone said to try:
+
+```
+  - name: RESET_CONFIG_ON_START
+    value: "true"
+```
+
+Didn't work either. Maybe this is the reverse proxy thing... Next for NodePort.
+
+This [guide](https://medium.com/@r.kosse/run-open-webui-with-kubernetes-be5fad2a7938#:~:text=Run%20Open%20WebUI%20with%20Kubernetes%201%20Docker%20desktop,interface%20...%207%20Create%20an%20Admin%20Account%20) made my ask what CLusterIP was. It doesn't look great according to [this]. 
+
+And BOOM I'm in via `http://kubevip.haynesnetwork:30000/` but it wants me to make an account!
+
+Now I need to hit ollama, [this](https://www.reddit.com/r/LocalLLaMA/comments/1dack04/open_web_ui_and_ollama_server_connection_issue/) seems reasonable.
+
+It worked - with this:
+
+```
+server {
+    listen 80;
+    server_name pop01;
+
+    location / {
+        proxy_pass http://localhost:11434; # Ollama address 
+        proxy_set_header Host localhost:11434;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+`http://pop01` could be configured in the UI to hit ollama. Cooking with gas now!
+
+![ui works]({{ site.url }}/images/llm/ui-works.png)
+
