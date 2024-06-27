@@ -3,6 +3,26 @@ title: Linux Cheat Sheet
 permalink: /cheatsheets/linux-commands/
 ---
 
+## Server Management
+
+### Disk Space
+
+```
+df -h
+```
+
+### Reboot
+
+```
+sudo shutdown -r now
+```
+
+### Halt  
+
+```
+sudo shutdown -h now
+```
+
 ## Package Management
 
 ## Updating packages from sources
