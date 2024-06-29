@@ -112,3 +112,73 @@ server {
 
 ![ui works]({{ site.url }}/images/llm/ui-works.png)
 
+## Fine Tuning
+
+Meta put out a good [document](https://llama.meta.com/docs/how-to-guides/fine-tuning/) on all the ways you could fine tune their model. Some seem to apply to other models but may be restricted. I'll stick to the basics for now before venturing too far from Llama3. 
+
+### First Try
+
+https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch 
+
+```
+docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -it --rm nvcr.io/nvidia/pytorch:24.06-py3
+```
+
+https://github.com/pytorch/torchtune
+
+https://github.com/tloen/alpaca-lora
+
+
+https://huggingface.co/meta-llama/Meta-Llama-3-70B
+
+```
+tune download meta-llama/Meta-Llama-3-70B-Instruct --hf-token <redacted> --output-dir /workspace/llama --ignore-patterns "original/consolidated*"
+```
+
+Then to fine tune:
+
+```
+tune run --nproc_per_node 2 lora_finetune_distributed --config 70B_lora.yaml
+```
+
+### Going Small to debug
+
+Since this is a docker container and I don't know what I am doing I'm taring everything down and restarting each time. This time I'm going with the following:
+
+```
+pip install torchtune
+```
+
+```
+tune download meta-llama/Meta-Llama-3-8B-Instruct --output-dir /workspace/llama --hf-token <redacted>
+```
+
+Copy the contents of [this file](https://github.com/pytorch/torchtune/blob/main/recipes/configs/llama3/8B_lora.yaml) into `/workspace/8B_lora.yaml` to have a local config, replace `/tmp/Meta-Llama-3-8B-Instruct/` with the path we have, and then run:
+
+```
+tune run --nproc_per_node 2 lora_finetune_distributed --config 8B_lora.yaml
+```
+
+For good measure I also set `export OMP_NUM_THREADS=2`. I need to read up more to see if this is CPU or GPU since I'd want to use all the cores I can.
+
+This time we got off the ground! My GPUs were maxed:
+
+![training max gpu]({{ site.url }}/images/popos/training-max-gpu.png)
+
+Plenty of [data sets](https://pytorch.org/torchtune/stable/api_ref_datasets.html#datasets) can easily be used to tune with this. Need to read about [configuration] first on how to set which to use.
+
+They also use something called [tqdm](https://tqdm.github.io/) as the progress bar which shows how many seconds per iteration we achieve. I don't have an idea of what I should be getting so it's not useful yet:
+
+![tqdm]({{ site.url }}/images/popos/tqdm.png)
+
+After letting it run all night the tuning is complete! 
+
+![tuning is complete]({{ site.url }}/images/popos/tuning-is-complete.png)
+
+But not without a cost:
+
+![llm first tune]({{ site.url }}/images/haos/llm-first-tune.png)
+
+#### Torchaudio
+
+Found something called torchaudio that looks fun.

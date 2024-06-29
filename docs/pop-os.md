@@ -172,7 +172,7 @@ THIS IMAGE IS DEPRECATED and is scheduled for DELETION.
     https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/support-policy.md
 ```
 
-Will upgrade later buy [pytorch](https://pytorch.org/) doesn't seem easy for 12.4.
+Will upgrade later but [pytorch](https://pytorch.org/) doesn't seem easy for 12.4.
 
 Aaand now I have a docker container running CUDA 12.1 which is not what I was going for. 
 
@@ -190,7 +190,46 @@ But I have the latest that offers and it's 11.5 which has no pytorch version ass
 
 ## Docker
 
-It looks like I need to run PyTorch on docker which is fine but if I'm going to do that I might as well also run [ollama's image](https://hub.docker.com/r/ollama/ollama). 
+It looks like I need to run [PyTorch on docker](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch) which is fine but if I'm going to do that I might as well also run [ollama's image](https://hub.docker.com/r/ollama/ollama). 
+
+PyTorch can be ran with this:
+
+```
+docker run --gpus all -it --rm nvcr.io/nvidia/pytorch:24.06-py3
+```
+
+It tells me I should have done this:
+
+```
+docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -it --rm nvcr.io/nvidia/pytorch:24.06-py3
+```
+
+And that I am running a container that supports CUDA 12.5 but I have 12.4 and that's just silly nonsense and I really should run a more comparable one or at least know a thing or two about it [here](https://docs.nvidia.com/deploy/cuda-compatibility/).
+
+I also need to map some storage with:
+
+```
+docker run --gpus all -it --rm -v local_dir:container_dir nvcr.io/nvidia/pytorch:xx.xx-py3
+```
+
+But the good news is I've got PyTorch w/ CUDA support without any heavy fiddling:
+
+```
+root@d127755b81d1:/workspace# python
+Python 3.10.12 (main, Nov 20 2023, 15:14:05) [GCC 11.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import torch
+>>> print(torch.cuda.is_available())
+True
+```
+
+So storage plus Then I can rock and roll.
+
+tune download meta-llama/Meta-Llama-3-8B \
+    --output-dir /workspace/downloads \
+    --hf-token <redacted>
+
+
 
 ## Open-WebUI
 
@@ -199,3 +238,7 @@ It looks like I need to run PyTorch on docker which is fine but if I'm going to 
 ## Retrieval Augmented Generation
 
 Retrieval Augmented Generation keeps coming up as something I'll need if I want this thing to be smart. [This article](https://towardsdatascience.com/running-llama-2-on-cpu-inference-for-document-q-a-3d636037a3d8) looks like a good start but it's PAYWALLED! Found a ton more.
+
+## Other Things
+
+I found this cool [guide](https://github.com/mikeroyal/Pop_OS-Guide) that details a bunch of other things to do with POP OS. 

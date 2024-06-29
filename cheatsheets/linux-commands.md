@@ -5,6 +5,12 @@ permalink: /cheatsheets/linux-commands/
 
 ## Server Management
 
+### CPU Cores
+
+```
+nproc --all
+```
+
 ### Disk Space
 
 ```
