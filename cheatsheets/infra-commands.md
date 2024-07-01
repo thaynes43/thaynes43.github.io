@@ -5,10 +5,28 @@ permalink: /cheatsheets/infra-commands/
 
 ## Proxmox
 
+### Logs
+
+#### Journal
+
+```
+journalctl
+```
+
 ### Reboot
+
+#### Trigger Reboot
 
 ```
 systemctl reboot
+```
+
+#### See Last Reboot
+
+See [comment](https://unix.stackexchange.com/questions/9819/how-to-find-out-from-the-logs-what-caused-system-shutdown)
+
+```
+last -x | head | tac
 ```
 
 ### Reload Network Stuff

@@ -1,3 +1,7 @@
+---
+title: LLM Stack
+permalink: /docs/llm-stack-overview/
+---
 
 ## Ollama
 
@@ -16,7 +20,7 @@ I commented about this on a bug recently created and was pointed [here](https://
 ```
 systemctl stop ollama
 sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm
-systemclt start ollama
+systemctl start ollama
 ```
 
 ## Open-WebUI
@@ -141,7 +145,7 @@ Then to fine tune:
 tune run --nproc_per_node 2 lora_finetune_distributed --config 70B_lora.yaml
 ```
 
-### Going Small to debug
+#### Going Small to debug
 
 Since this is a docker container and I don't know what I am doing I'm taring everything down and restarting each time. This time I'm going with the following:
 
@@ -178,6 +182,69 @@ After letting it run all night the tuning is complete!
 But not without a cost:
 
 ![llm first tune]({{ site.url }}/images/haos/llm-first-tune.png)
+
+##### Eval
+
+Now we need to evaluate the files thrown here:
+
+INFO:torchtune.utils.logging:Model checkpoint of size 16.06 GB saved to /workspace/llama/meta_model_0.pt
+INFO:torchtune.utils.logging:Adapter checkpoint of size 0.01 GB saved to /workspace/llama/adapter_0.pt
+
+Going to restart with the end-to-end how to instead
+
+### End to End
+
+#### Proper Dev Environment w/ Docker in the Loop
+
+Looks like someone was wondering the same shit I was [here](https://forums.developer.nvidia.com/t/using-a-jupyter-notebook-within-a-docker-container/60188/4) but 6 years ago so I may have some sprucing up to do.
+
+Create `Dockerfile`:
+
+```
+FROM nvcr.io/nvidia/pytorch:24.06-py3
+WORKDIR /workspace
+RUN pip install jupyter
+EXPOSE 8888
+RUN pip install torchtune
+```
+
+Build it:
+
+```
+docker build -t nvidia-pytorch-tune .
+```
+
+That makes the container and adds it to my local repo:
+
+```
+Successfully built ad748b40fbba
+Successfully tagged nvidia-pytorch-tune:latest
+```
+
+
+
+#### End to End Tutorial
+
+Next we wil follow [this tutorial](https://pytorch.org/torchtune/stable/tutorials/e2e_flow.html#e2e-flow) to fine tune and evaluate a model. 
+
+First we need to get back into a docker:
+
+```
+docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -it --rm nvcr.io/nvidia/pytorch:24.06-py3
+```
+
+Once in we need to do this again:
+
+```
+pip install torchtune
+```
+
+The tutorial is for a single GPU but has `batch_size=2` and `dtype=bfloat16`. 
+
+[This guide](https://pytorch.org/torchtune/main/tutorials/e2e_flow.html) looks pretty good for "end to end" workflows. 
+
+https://pytorch.org/serve/configuration.html
+https://pytorch.org/torchtune/stable/deep_dives/configs.html 
 
 #### Torchaudio
 
