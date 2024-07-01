@@ -113,6 +113,8 @@ scp remote_username@10.10.0.2:/remote/file.txt /local/directory
 
 ## SMB Share
 
+[This](https://linuxconfig.org/how-to-mount-a-samba-shared-directory-at-boot) was a nice writeup of parts of what is below.
+
 ### Dependency 
 
 Install `cifs` which will mount the share:
