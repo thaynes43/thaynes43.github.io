@@ -81,6 +81,8 @@ adventuresnav:
         url: /docs/host-monitoring/
       - title: LLM Stack
         url: /docs/llm-stack-overview/
+      - title: Gaming VM Guide
+        url: /docs/gaming-vm-guide/
 
 sheetsnav:
   - title: Cheat Sheets
