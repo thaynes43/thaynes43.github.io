@@ -100,3 +100,24 @@ Now that we have a secret VM we are good to move on to passing through what we n
 The obvious thing to passthrough here is the GPU but I am also going to test this locally w/ a KB&M and Xbox controller via a bluetooth dongle. 
 
 Now shut it down and 'eject' the installation media.
+
+### Passthrough Settings
+
+The next steps are highly dependent on your hardware and can be done through the UI. Here is where I landed for playing in my basement on some junk hardware:
+
+```
+hostpci0: 0000:03:00,pcie=1,x-vga=1  # GPU
+hostpci1: 0000:00:1f.3               # Audio 
+usb0: host=1-3,usb3=1                # Keyboard
+usb1: host=1-8,usb3=1                # Mouse
+usb2: host=1-9,usb3=1                # BT USB Dongle
+```
+
+I'm using a Bluetooth dongle which kinda sucks. It's an [ASUS BT500](https://www.asus.com/us/networking-iot-servers/adapters/all-series/usb-bt500/) that I bought for my Home Assistant VM but wasn't really using. For some reason the controller will periodically disconnect, the xbox light will blink, then it'll reconnect. I've tried two different dongles on two different Proxmox hosts ([haynesintelligence]({{ site.url }}/hardware/haynesintelligence/) has it's own one for the second gaming VM). I've also used onboard WiFi and BT that came with one of those massive antennas w/ the two screw in connectors and that worked flawlessly so I'd recommend that over this one. 
+
+For onboard you just need to passthrough a PCIe and USB device to get the whole WiFi BT combo. Half and half won't work:
+
+![onboard bt pcie]({{ site.url }}/images/builds/proxmox/onboard-bt-pcie.png)
+
+![onboard bt usb]({{ site.url }}/images/builds/proxmox/onboard-bt-usb.png)
+

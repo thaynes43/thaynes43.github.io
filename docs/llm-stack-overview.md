@@ -221,6 +221,12 @@ Successfully built ad748b40fbba
 Successfully tagged nvidia-pytorch-tune:latest
 ```
 
+Check it's in the local repo with:
+
+```
+docker images
+```
+
 #### End to End Tutorial
 
 Next we wil follow [this tutorial](https://pytorch.org/torchtune/stable/tutorials/e2e_flow.html#e2e-flow) to fine tune and evaluate a model. 

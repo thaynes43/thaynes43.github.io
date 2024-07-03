@@ -99,5 +99,7 @@ benchmarksnav:
   - title: Benchmarks
     url: /benchmarks/benchmarks-index/
     children:
+      - title: Disk Speed
+        url: /benchmarks/disk-speed/
       - title: Hades
         url: /benchmarks/hades/     

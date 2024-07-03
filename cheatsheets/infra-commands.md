@@ -51,6 +51,14 @@ update-grub
 pve-efiboot-tool refresh
 ```
 
+## ZFS
+
+### Clear Warnings
+
+```
+zpool clear <poolname>
+```
+
 ## ceph
 
 ### Archive crash warnings
