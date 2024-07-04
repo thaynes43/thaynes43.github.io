@@ -49,7 +49,9 @@ Since it didn't make much sense I wanted to give `WinGaming01` another shot. Of 
 
 ![wingaming01 backup]({{ site.url }}/images/windows/wingaming01-backup.png)
 
-Maybe another time.
+The next morning these numbers were much closer to `WinGaming02`:
+
+![wingaming01 redo]({{ site.url }}/images/windows/wingaming01-redo.png)
 
 ### Back to the Costly Mistake
 

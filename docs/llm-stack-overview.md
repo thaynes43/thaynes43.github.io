@@ -23,6 +23,13 @@ sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm
 systemctl start ollama
 ```
 
+Gonna cron it:
+
+```
+crontab -e
+@reboot sleep 30 && /home/thaynes/workspace/fixollama.sh
+```
+
 ## Open-WebUI
 
 [Open-WebUI](https://docs.openwebui.com/) is the front end people use for ollama. [Helm charts](https://github.com/open-webui/helm-charts)
@@ -112,6 +119,20 @@ server {
 }
 ```
 
+Then:
+
+```
+sudo nginx -t
+
+sudo systemctl restart nginx
+```
+
+And so it starts on reboot:
+
+```
+sudo systemctl enable nginx
+```
+
 `http://pop01` could be configured in the UI to hit ollama. Cooking with gas now!
 
 ![ui works]({{ site.url }}/images/llm/ui-works.png)
@@ -196,6 +217,10 @@ Going to restart with the end-to-end how to instead
 
 #### Proper Dev Environment w/ Docker in the Loop
 
+Developing in a docker is weird but here's what we can do.
+
+##### Build a Custom Image
+
 Looks like someone was wondering the same shit I was [here](https://forums.developer.nvidia.com/t/using-a-jupyter-notebook-within-a-docker-container/60188/4) but 6 years ago so I may have some sprucing up to do.
 
 Create `Dockerfile`:
@@ -227,6 +252,20 @@ Check it's in the local repo with:
 docker images
 ```
 
+##### Run the Image
+
+Run it with the args and stuff
+
+```
+docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -it -p "8888:8888" -v "/my-local-computer-files/:/my-docker-container/" nvidia-pytorch-tune
+```
+
+Then inside
+
+```
+jupyter notebook --port=8888 --ip=0.0.0.0 --allow-root --no-browser .
+```
+
 #### End to End Tutorial
 
 Next we wil follow [this tutorial](https://pytorch.org/torchtune/stable/tutorials/e2e_flow.html#e2e-flow) to fine tune and evaluate a model. 
@@ -253,3 +292,7 @@ https://pytorch.org/torchtune/stable/deep_dives/configs.html
 #### Torchaudio
 
 Found something called torchaudio that looks fun.
+
+## LibGen DB
+
+[This post](https://www.reddit.com/r/libgen/comments/pqidr6/understanding_libgens_sql_database_format/) details how to restore the DB.

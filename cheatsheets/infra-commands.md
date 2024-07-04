@@ -53,10 +53,18 @@ pve-efiboot-tool refresh
 
 ## ZFS
 
+### See Issues
+
+```
+zpool status -v
+```
+
 ### Clear Warnings
 
 ```
-zpool clear <poolname>
+zpool clear <poolname> <devicename>
+
+zpool clear tank ata-ST20000NM004E-3HR103_ZX2119KV
 ```
 
 ## ceph
