@@ -95,7 +95,7 @@ If things were not set up correctly Windows will say "Virtual machine: Yes" inst
 
 Now that we have a secret VM we are good to move on to passing through what we need for gaming.
 
-## Passthrough Settings
+## Passthrough
 
 The obvious thing to passthrough here is the GPU but I am also going to test this locally w/ a KB&M and Xbox controller via a bluetooth dongle. 
 
@@ -120,4 +120,8 @@ For onboard you just need to passthrough a PCIe and USB device to get the whole 
 ![onboard bt pcie]({{ site.url }}/images/builds/proxmox/onboard-bt-pcie.png)
 
 ![onboard bt usb]({{ site.url }}/images/builds/proxmox/onboard-bt-usb.png)
+
+## VirtualHere
+
+One thing I want to be able to do is connect a USB DDR pad to the gaming VM for playing Stepmania (now OutFox) in my living room. I found these [AnywhereUSB Plus devices](https://www.digi.com/products/networking/infrastructure-management/usb-connectivity/usb-over-ip/anywhereusb) but they are industrial and super expensive. Instead I'm going to use a [Minisforum S100](https://store.minisforum.com/products/minisforum-s100) to host a VirtualHere server which the VM set up above can connect to as a client.
 

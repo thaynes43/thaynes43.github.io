@@ -135,11 +135,11 @@ Now to not confused like I was before. This node has ZFS while everyone use uses
 
 First remove HaynesAI from `local-lvm`:
 
-![config local lvm]({{ site.url }}/images/builds/proxmox/config-local-lvm.png)
+![config local lvm]({{ site.url }}/images/proxmox/config-local-lvm.png)
 
 But now we need to get ZFS back. Go `Datacenter -> Storage -> Add` and configure:
 
-![add zfs]({{ site.url }}/images/builds/proxmox/add-zfs.png)
+![add zfs]({{ site.url }}/images/proxmox/add-zfs.png)
 
 And storage looks great! I also installed Ceph to view those metrics but the storage devices looked fine without needing to do this. 
 
@@ -194,11 +194,11 @@ The first test that popped up was called steel nomad. I deciced to try it on eac
 
 Side 1:
 
-![steel nomad 1]({{ site.url }}/images/builds/proxmox/steel-nomad-3090-01.png)
+![steel nomad 1]({{ site.url }}/images/benchmarks/steel-nomad-3090-01.png)
 
 Side 2:
 
-![steel nomad 1]({{ site.url }}/images/builds/proxmox/steel-nomad-3090-02.png)
+![steel nomad 1]({{ site.url }}/images/benchmarks/steel-nomad-3090-02.png)
 
 Then I realized I'd need two steam accounts to play the same game twice! Going to move on to Epic where I have two accounts.
 
@@ -497,7 +497,7 @@ I updated the file-shareing plugin version but the rest were the latest already.
 
 Fortunatly no suprised were left. Once I logged into the nice web UI via `https://nas01.haynesnetwork:9090/` I was able to create users and shares as the guide suggested. Only thing not in the guide was giving users permission to write vs. just the shares owner. Once I did that I was able to copy an ISO into it super fast.
 
-![new nas01 share]({{ site.url }}/images/builds/windows/new-nas01-share.png)
+![new nas01 share]({{ site.url }}/images/windows/new-nas01-share.png)
 
 
 
