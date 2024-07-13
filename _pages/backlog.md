@@ -172,3 +172,62 @@ Found a [cool site](https://distrowatch.com/dwres.php?resource=major) that lists
 * [Pop!_OS](https://pop.system76.com/) for AI
 * [Bliss OS](https://sourceforge.net/projects/blissos-dev/) which is what Waydroid-Linux points to and seems better than the containerized install on Ubuntu
 * [Madness](https://en.wikipedia.org/wiki/TempleOS)
+
+
+### DUMP
+
+http://192.168.0.200:8085/#Homepage
+http://homeassistant.local:8123/adaptive-dash/hallways
+http://192.168.0.200:32400/web/index.html#!/
+http://192.168.0.62:8080/#/login?returnUrl=%2Fdashboard
+https://pvedash/#v1:0:=qemu%2F100:4:=zfs:=contentImages:::8:=consolejs:21
+https://192.168.0.14:8007/#pbsDashboard
+
+#### NOT PINNED
+
+https://docs.nvidia.com/deeplearning/frameworks/user-guide/index.html#runcont
+https://github.com/thaynes43/thaynes43.github.io
+http://kubevip.haynesnetwork:32181/2024/05/13/hello-world/#comment-3
+https://ai.haynesnetwork.com/auth
+https://us.moshi.chat/
+http://homeassistant.local:8123/config/devices/device/e38c74aea575987ca65cc36877dccb1e
+https://openai.com/index/hello-gpt-4o/
+https://platform.openai.com/playground/chat?models=gpt-4o
+https://chatgpt.com/gpts
+https://tteck.github.io/Proxmox/#turnkey-lxc-appliances
+https://www.turnkeylinux.org/
+https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch
+https://github.com/meta-llama/llama-recipes#install-with-pip
+https://github.com/OpenPipe/OpenPipe/tree/main/examples/classify-recipes
+https://llama.meta.com/docs/how-to-guides/fine-tuning/
+https://pytorch.org/torchtune/main/tutorials/e2e_flow.html
+https://github.com/pytorch/torchtune/blob/main/recipes/configs/llama2/7B_lora_single_device.yaml
+https://github.com/pytorch/torchtune/blob/main/recipes/configs/llama3/8B_lora.yaml
+https://pytorch.org/torchtune/stable/api_ref_datasets.html#datasets
+https://pytorch.org/torchtune/stable/api_ref_datasets.html#datasets
+https://nas01.haynesnetwork:9090/system
+https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch
+https://jupyter.org/install
+https://forums.developer.nvidia.com/t/using-a-jupyter-notebook-within-a-docker-container/60188/3
+https://pytorch.org/torchtune/stable/tutorials/e2e_flow.html#e2e-flow
+http://192.168.0.250:61208/
+https://blog.kye.dev/proxmox-cockpit
+https://docs.ceph.com/en/latest/rados/operations/add-or-rm-osds/
+https://docs.openwebui.com/tutorial/openedai-speech-integration/
+https://forums.unraid.net/topic/140380-supermicro-cse-847-36-bay-4u-sas-3-barebone-chassis-2x-pws-1k28p-sq/#comment-1414637
+https://gist.github.com/thaynes43/6135cdde0b228900d70ab49dfe386f91
+https://gist.github.com/scyto/76e94832927a89d977ea989da157e9dc
+https://docs.ceph.com/en/quincy/start/hardware-recommendations/
+https://forums.servethehome.com/index.php?threads/minisforum-ms-01-pcie-card-and-ram-compatibility-thread.42785/page-49
+https://community.home-assistant.io/t/openassist-chatgpt-can-now-control-entities/579000
+https://www.home-assistant.io/integrations/openai_conversation/
+http://homeassistant.local:8123/config/voice-assistants/assistants
+https://music-assistant.io/
+https://docs.ceph.com/en/quincy/mgr/dashboard/#enabling-the-embedding-of-grafana-dashboards
+https://cockpit-project.org/
+https://huggingface.co/datasets/wikimedia/wikipedia
+https://docs.openwebui.com/features/
+https://docs.trychroma.com/
+https://www.reddit.com/r/ollama/comments/1dtcmxz/local_rag_powered_by_ollama/
+https://r2r-docs.sciphi.ai/installation <--- NEXT
+https://dortania.github.io/Anti-Hackintosh-Buyers-Guide/GPU.html
