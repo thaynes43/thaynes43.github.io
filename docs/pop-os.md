@@ -27,7 +27,7 @@ After updating I renamed the PC to match the VM's name and installed [nomachine]
 
 The [ISO](https://iso.pop-os.org/22.04/amd64/nvidia/41/pop-os_22.04_amd64_nvidia_41.iso) I installed for Pop!_OS even had Nvidia in the name so I was feeling pretty good that this wouldn't be another hackintosh adventure. Sure enough they went right in. 
 
-![dual gpus]({{ site.url }}/images/builds/popos/dual-gpus.png)
+![dual gpus]({{ site.url }}/images/popos/dual-gpus.png)
 
 Oddly my settings were a bit different and I had a hard time changing the resolution but sometimes a dummy plug can make a world of a difference so I went for one of those. That's when I realized it was still connected to my ancient basement monitor which likely explains the limited resolution options but it's still getting dummy plugs.
 
@@ -59,6 +59,12 @@ curl -fsSL https://ollama.com/install.sh | sh
 ```
 nvidia-smi
 watch -n 0.5 nvidia-smi
+```
+
+or git bash this works:
+
+```
+nvidia-smi -l 1
 ```
 
 ```

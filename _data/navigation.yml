@@ -83,6 +83,8 @@ adventuresnav:
         url: /docs/llm-stack-overview/
       - title: Gaming VM Guide
         url: /docs/gaming-vm-guide/
+      - title: NUT
+        url: /docs/nut/
 
 sheetsnav:
   - title: Cheat Sheets
