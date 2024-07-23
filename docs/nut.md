@@ -17,7 +17,7 @@ As I mentioned earlier, `HaynesTower` has had a UPS set up that only unRAID is l
 
 `/config/packages/sensors.yaml`
 
-```
+```yaml
 template:
   - sensor:
       - name: "UPS Watt Load"
@@ -30,7 +30,7 @@ template:
 
 And this is loaded in `configurations.yaml` right at the top:
 
-```
+```yaml
 # Loads default set of integrations. Do not remove.
 default_config:
 
@@ -168,7 +168,8 @@ The video guide [here](https://technotim.live/posts/NUT-server-guide/) was great
 #### Define the UPS
 
 `/etc/nut/ups.conf`
-```
+
+```bash
 [APC-900W-01]
     driver = usbhid-ups
     port = auto
@@ -181,7 +182,8 @@ The video guide [here](https://technotim.live/posts/NUT-server-guide/) was great
 #### Setup a Monitor
 
 `nano /etc/nut/upsmon.conf`
-```
+
+```bash
 RUN_AS_USER root
 
 MONITOR APC-900W-01@localhost 1 admin PASSWORD master
@@ -193,7 +195,7 @@ Since this server will be accessed by clients we need to listen for any IP on th
 
 `nano /etc/nut/upsd.conf`
 
-```
+```bash
 LISTEN 0.0.0.0 3493
 ```
 
@@ -201,7 +203,7 @@ LISTEN 0.0.0.0 3493
 
 `nano /etc/nut/nut.conf`
 
-```
+```bash
 MODE=netserver
 ```
 
@@ -282,7 +284,7 @@ Fortunatly adding the new NUT server to Home Assistant for monitoring was a bree
 
 I also added the same custom template sensor as we did for unRAID:
 
-```
+```javascript
 {{ states('sensor.apc_900w_01_load')|int  * 0.01 * states('sensor.apc_900w_01_nominal_real_power')|int * 0.97|round(2) }}
 ```
 
@@ -296,4 +298,208 @@ Unlike unRAID's UPS I did not have a view of the load unless I used the screen o
 
 Numbers seem to add up so we are good to move onto either additional monitoring or the clients!
 
-TO BE CONTINUED... 
+### Setting up Clients
+
+I finished watching the YouTube video and decided that the monitoring there wasn't great and if I wanted something on top of Home Assistant it would best be ran on the k8s cluster. 
+
+```bash
+apt update
+apt upgrade
+apt install nut-client
+```
+
+#### Configure Monitor
+
+`/etc/nut/upsmon.conf`
+
+```bash
+RUN_AS_USER root
+
+MONITOR APC-900W-01@nut01.haynesnetwork 1 admin PASSWORD slave
+
+MINSUPPLIES 1
+SHUTDOWNCMD "/sbin/shutdown -h"
+NOTIFYCMD /usr/sbin/upssched
+POLLFREQ 2
+POLLFREQALERT 1
+HOSTSYNC 15
+DEADTIME 15
+POWERDOWNFLAG /etc/killpower
+
+NOTIFYMSG ONLINE    "UPS %s on line power"
+NOTIFYMSG ONBATT    "UPS %s on battery"
+NOTIFYMSG LOWBATT   "UPS %s battery is low"
+NOTIFYMSG FSD       "UPS %s: forced shutdown in progress"
+NOTIFYMSG COMMOK    "Communications with UPS %s established"
+NOTIFYMSG COMMBAD   "Communications with UPS %s lost"
+NOTIFYMSG SHUTDOWN  "Auto logout and shutdown proceeding"
+NOTIFYMSG REPLBATT  "UPS %s battery needs to be replaced"
+NOTIFYMSG NOCOMM    "UPS %s is unavailable"
+NOTIFYMSG NOPARENT  "upsmon parent process died - shutdown impossible"
+
+NOTIFYFLAG ONLINE   SYSLOG+WALL+EXEC
+NOTIFYFLAG ONBATT   SYSLOG+WALL+EXEC
+NOTIFYFLAG LOWBATT  SYSLOG+WALL
+NOTIFYFLAG FSD      SYSLOG+WALL+EXEC
+NOTIFYFLAG COMMOK   SYSLOG+WALL+EXEC
+NOTIFYFLAG COMMBAD  SYSLOG+WALL+EXEC
+NOTIFYFLAG SHUTDOWN SYSLOG+WALL+EXEC
+NOTIFYFLAG REPLBATT SYSLOG+WALL
+NOTIFYFLAG NOCOMM   SYSLOG+WALL+EXEC
+NOTIFYFLAG NOPARENT SYSLOG+WALL
+
+RBWARNTIME 43200
+
+NOCOMMWARNTIME 600
+
+FINALDELAY 5
+```
+
+#### Set as Client
+
+`nano /etc/nut/nut.conf`
+
+```bash
+MODE=netclient
+```
+
+#### Configure Timers
+
+> TODO this will need some review, for now it'll have 5min forall 
+
+`nano /etc/nut/upssched.conf`
+
+```bash
+CMDSCRIPT /etc/nut/upssched-cmd
+PIPEFN /etc/nut/upssched.pipe
+LOCKFN /etc/nut/upssched.lock
+
+AT ONBATT * START-TIMER onbatt 300
+AT ONLINE * CANCEL-TIMER onbatt online
+AT ONBATT * START-TIMER earlyshutdown 300
+AT LOWBATT * EXECUTE onbatt
+AT COMMBAD * START-TIMER commbad 300
+AT COMMOK * CANCEL-TIMER commbad commok
+AT NOCOMM * EXECUTE commbad
+AT SHUTDOWN * EXECUTE powerdown
+AT SHUTDOWN * EXECUTE powerdown
+```
+
+#### Add Script for upssched to Call
+
+`sudo nano /etc/nut/upssched-cmd`
+
+```bash
+#!/bin/sh
+ case $1 in
+       onbatt)
+          logger -t upssched-cmd "UPS running on battery"
+          ;;
+       earlyshutdown)
+          logger -t upssched-cmd "UPS on battery too long, early shutdown"
+          /usr/sbin/upsmon -c fsd
+          ;;
+       shutdowncritical)
+          logger -t upssched-cmd "UPS on battery critical, forced shutdown"
+          /usr/sbin/upsmon -c fsd
+          ;;
+       upsgone)
+          logger -t upssched-cmd "UPS has been gone too long, can't reach"
+          ;;
+       *)
+          logger -t upssched-cmd "Unrecognized command: $1"
+          ;;
+ esac
+ ```
+
+ `chmod +x /etc/nut/upssched-cmd`
+ 
+ And then put changes into effect via `systemctl restart nut-client`.
+
+#### Testing Disconnect from NUT Server
+
+On CLIENT we can verify the UPS is hit.
+
+First restart for 
+
+```
+systemctl restart nut-client
+```
+
+```
+root@pve01:/etc/nut# upsc APC-900W-01@nut01.haynesnetwork
+Init SSL without certificate database
+battery.charge: 100
+battery.charge.low: 10
+battery.charge.warning: 50
+battery.date: 2001/09/25
+battery.mfr.date: 2024/03/10
+battery.runtime: 654
+battery.runtime.low: 120
+battery.type: PbAc
+battery.voltage: 27.4
+battery.voltage.nominal: 24.0
+device.mfr: American Power Conversion
+device.model: Back-UPS RS 1500MS2
+device.serial: 0B2410L42417  
+device.type: ups
+driver.name: usbhid-ups
+driver.parameter.pollfreq: 30
+driver.parameter.pollinterval: 1
+driver.parameter.port: auto
+driver.parameter.productid: 0002
+driver.parameter.serial: 0B2410L42417
+driver.parameter.synchronous: auto
+driver.parameter.vendorid: 051D
+driver.version: 2.8.0
+driver.version.data: APC HID 0.98
+driver.version.internal: 0.47
+driver.version.usb: libusb-1.0.26 (API: 0x1000109)
+input.sensitivity: medium
+input.transfer.high: 144
+input.transfer.low: 88
+input.transfer.reason: input voltage out of range
+input.voltage: 114.0
+input.voltage.nominal: 120
+ups.beeper.status: enabled
+ups.delay.shutdown: 20
+ups.firmware: 969.e4 .D
+ups.firmware.aux: e4     
+ups.load: 52
+ups.mfr: American Power Conversion
+ups.mfr.date: 2024/03/10
+ups.model: Back-UPS RS 1500MS2
+ups.productid: 0002
+ups.realpower.nominal: 900
+ups.serial: 0B2410L42417  
+ups.status: OL
+ups.test.result: No test initiated
+ups.timer.reboot: 0
+ups.timer.shutdown: -1
+ups.vendorid: 051d
+```
+
+On SERVER:
+
+`systemctl restart nut-server`
+
+And we get messages in the client showing the disconnect!
+
+```
+Broadcast message from root@pve01 (somewhere) (Mon Jul 22 23:44:17 2024):      
+                                                                               
+Communications with UPS APC-900W-01@nut01.haynesnetwork lost                   
+                                                                               
+                                                                               
+Broadcast message from root@pve01 (somewhere) (Mon Jul 22 23:44:21 2024):      
+                                                                               
+Communications with UPS APC-900W-01@nut01.haynesnetwork established            
+```
+
+### Four More MS-01s
+
+TODO one was enough for tonight.
+
+## Pulling the Plug
+
+Coming soon - the final test!
