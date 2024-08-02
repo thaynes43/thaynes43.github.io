@@ -46,7 +46,7 @@ homeassistant:
 
 ### unRAID NUT
 
-In the spirt of consolodating everything to the nut-server / nut-client approach I will also set up a nut-server from unRAID. I can then use my new HAOS to monitor whatever number of UPS's I end up with. 
+In the spirit of consolidating everything to the nut-server / nut-client approach I will also set up a nut-server from unRAID. I can then use my new HAOS to monitor whatever number of UPS's I end up with. 
 
 This was as easy as installing the Network UPS Tools plugin for unRAID, disabling the built in UPS stuff under `UPS Settings`, and configuring the new plugin to be something like this:
 
@@ -123,7 +123,7 @@ Scanning USB bus.
 Failed to open device bus '001', skipping: No such device (it may have been disconnected)
 ```
 
-[Here](https://forum.proxmox.com/threads/nut-ups-on-container.137579/) was someone with the exact same issue and steps to resolve which looked promising. I triedd the `lxc.mount.entry` one first but it did not work. Here is what worked:
+[Here](https://forum.proxmox.com/threads/nut-ups-on-container.137579/) was someone with the exact same issue and steps to resolve which looked promising. I tried the `lxc.mount.entry` one first but it did not work. Here is what worked:
 
 Shut down the LXC and go to the pve shell to find the bus and device:
 
@@ -284,7 +284,7 @@ Fortunatly adding the new NUT server to Home Assistant for monitoring was a bree
 
 I also added the same custom template sensor as we did for unRAID:
 
-```javascript
+```
 {{ states('sensor.apc_900w_01_load')|int  * 0.01 * states('sensor.apc_900w_01_nominal_real_power')|int * 0.97|round(2) }}
 ```
 
@@ -302,9 +302,12 @@ Numbers seem to add up so we are good to move onto either additional monitoring 
 
 I finished watching the YouTube video and decided that the monitoring there wasn't great and if I wanted something on top of Home Assistant it would best be ran on the k8s cluster. 
 
+Before installing on each node I also updated everything:
+
 ```bash
 apt update
 apt upgrade
+pveam update
 apt install nut-client
 ```
 
@@ -387,7 +390,7 @@ AT SHUTDOWN * EXECUTE powerdown
 
 #### Add Script for upssched to Call
 
-`sudo nano /etc/nut/upssched-cmd`
+`nano /etc/nut/upssched-cmd`
 
 ```bash
 #!/bin/sh
@@ -498,7 +501,23 @@ Communications with UPS APC-900W-01@nut01.haynesnetwork established
 
 ### Four More MS-01s
 
-TODO one was enough for tonight.
+I took advantace of this procedure to update each of the five nodes. I also ran this command for pve:
+
+```
+pveam update
+```
+
+The rest was easy, just following the steps for the client above four more timee. 
+
+### HaynesIntelligence NUT
+
+Following my notes from above it was easy to setup the nut-server and nut-client for HaynesIntellegience which finalized my power consumption monitoring for the server room!
+
+![server room all ups]({{ site.url }}/images/haos/server-room-all-ups.png)
+
+I was able to combine all three sensors into a total for the consuption of the servers:
+
+![all servers consumption]({{ site.url }}/images/haos/all-servers-consumption.png)
 
 ## Pulling the Plug
 

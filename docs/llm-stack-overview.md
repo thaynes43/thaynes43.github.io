@@ -30,6 +30,38 @@ crontab -e
 @reboot sleep 30 && /home/thaynes/workspace/fixollama.sh
 ```
 
+### Ollama Needs More Space
+
+Stop Ollama
+
+```
+systemctl stop ollama.service
+```
+
+Set the new location for models usin [these steps](https://github.com/ollama/ollama/blob/main/docs/faq.md#setting-environment-variables-on-linux).
+
+```
+systemctl edit ollama.service 
+```
+
+Add:
+
+```
+[Service]
+Environment="OLLAMA_MODELS=//nas01/Data/ollama/models"
+```
+
+Delete the models from the current spot or just move them 
+
+Start Ollama
+
+Restart:
+
+```
+systemctl daemon-reload
+systemctl start ollama.service or systemctl restart ollama
+```
+
 ## Open-WebUI
 
 [Open-WebUI](https://docs.openwebui.com/) is the front end people use for ollama. [Helm charts](https://github.com/open-webui/helm-charts)
@@ -136,6 +168,8 @@ sudo systemctl enable nginx
 `http://pop01` could be configured in the UI to hit ollama. Cooking with gas now!
 
 ![ui works]({{ site.url }}/images/llm/ui-works.png)
+
+## Stable Diffusion Web UI
 
 ## Fine Tuning
 
