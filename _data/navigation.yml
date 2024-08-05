@@ -85,6 +85,8 @@ adventuresnav:
         url: /docs/gaming-vm-guide/
       - title: NUT
         url: /docs/nut/
+      - title: Logs
+        url: /docs/logs/
 
 sheetsnav:
   - title: Cheat Sheets

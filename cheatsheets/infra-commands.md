@@ -5,6 +5,21 @@ permalink: /cheatsheets/infra-commands/
 
 ## Proxmox
 
+### Update
+
+```
+pveam update
+```
+
+### Remove Node
+
+```
+pvecm delnode <node>
+rm -r /etc/pve/nodes/<node>
+```
+
+Not sure why the folder needs to be deleted but you can refresh the web browser after and it'll be gone! 
+
 ### Logs
 
 #### Journal

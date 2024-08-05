@@ -165,6 +165,8 @@ Scanning USB bus.
 
 The video guide [here](https://technotim.live/posts/NUT-server-guide/) was great for setting this up. Below are the configs I came up with while following along. 
 
+> **WARNING** Techno Tim had some bad configs. They are pretty easy to catch but I've left below what is from the video. After I've included corrections
+
 #### Define the UPS
 
 `/etc/nut/ups.conf`
@@ -368,7 +370,7 @@ MODE=netclient
 
 #### Configure Timers
 
-> TODO this will need some review, for now it'll have 5min forall 
+> **WARNING** See below for why this is broken
 
 `nano /etc/nut/upssched.conf`
 
@@ -389,6 +391,8 @@ AT SHUTDOWN * EXECUTE powerdown
 ```
 
 #### Add Script for upssched to Call
+
+> **WARNING** See below for why this is broken
 
 `nano /etc/nut/upssched-cmd`
 
@@ -418,6 +422,93 @@ AT SHUTDOWN * EXECUTE powerdown
  `chmod +x /etc/nut/upssched-cmd`
  
  And then put changes into effect via `systemctl restart nut-client`.
+
+#### Fixing Techno Tim's Configs
+
+Few issues here. First `earlyshutdown` is never canceled. Second `upsgone` is called `commok` in the schedual and will never be invoked in the bash script which is just a warning anyway. There is also a `online` and `commok` defined in the schedual that have nothing in the switch statement for.
+
+This can be fixed quickly by adding `AT ONLINE * CANCEL-TIMER earlyshutdown` so you don't shut down after a flicker but some of the configs people suggested in the comments are a lot cleaner. I went with:
+
+##### upssched
+
+`nano /etc/nut/upssched.conf`
+
+```bash
+CMDSCRIPT /etc/nut/upssched-cmd
+PIPEFN /etc/nut/upssched.pipe
+LOCKFN /etc/nut/upssched.lock
+
+# Starts a timer when the UPS switches to battery power
+AT ONBATT * START-TIMER shutdown_timer 300
+
+# Cancels the shutdown timer when power is restored
+AT ONLINE * CANCEL-TIMER shutdown_timer
+
+# Executes immediate shutdown when battery is low
+AT LOWBATT * EXECUTE immediate_shutdown
+
+# Starts a timer on communication failure
+AT COMMBAD * START-TIMER commbad_timer 300
+
+# Cancels the communication failure timer when communication is restored
+AT COMMOK * CANCEL-TIMER commbad_timer
+
+# Executes shutdown on persistent communication failure
+AT NOCOMM * EXECUTE commbad_shutdown
+
+# Executes powerdown on system shutdown
+AT SHUTDOWN * EXECUTE powerdown
+```
+
+##### upssched-cmd
+
+`nano /etc/nut/upssched-cmd`
+
+```bash
+#!/bin/sh
+
+case $1 in
+    shutdown_timer)
+        # Log the event and initiate a controlled shutdown
+        logger -t upssched-cmd "UPS running on battery for too long, initiating shutdown"
+        /usr/sbin/upsmon -c fsd
+        ;;
+
+    immediate_shutdown)
+        # Log the critical battery status and initiate immediate shutdown
+        logger -t upssched-cmd "UPS on battery critical, forced shutdown"
+        /usr/sbin/upsmon -c fsd
+        ;;
+
+    commbad_timer)
+        # Log persistent communication failures and initiate shutdown
+        logger -t upssched-cmd "UPS communication failure persists, initiating shutdown"
+        /usr/sbin/upsmon -c fsd
+        ;;
+
+    commbad_shutdown)
+        # Log communication failure and initiate shutdown
+        logger -t upssched-cmd "UPS communication failed, initiating shutdown"
+        /usr/sbin/upsmon -c fsd
+        ;;
+
+    powerdown)
+        # Log the execution of the shutdown
+        logger -t upssched-cmd "Executing powerdown command"
+        ;;
+
+    *)
+        # Log unknown commands
+        logger -t upssched-cmd "Unrecognized command: $1"
+        ;;
+esac
+```
+
+ `chmod +x /etc/nut/upssched-cmd`
+
+ Then apply:
+
+ `systemctl restart nut-client`
 
 #### Testing Disconnect from NUT Server
 

@@ -125,6 +125,14 @@ kubectl describe <type> <name>
 
 ### kubectl logs
 
+For an app:
+
+```
+kubectl logs -n velero -l app.kubernetes.io/name=velero
+```
+
+For a pod:
+
 ```
 kubectl logs <podname>
 ```
@@ -144,3 +152,21 @@ This will show resources. Here we are checking to see if the cluster can make vo
 ```
 kubectl api-resources | grep volumesnapshots
 ```
+
+## Velero
+
+### Create Backup
+
+```
+velero backup create hellothere --include-namespaces=default --wait
+```
+
+#### TODO FROM DEBUGGING NEEDS ORGANIZING
+
+```
+kubectl get events -A
+ceph -s
+ceph osd lspools
+kubectl logs -f velero-764d58dfd9-k47sh
+```
+
