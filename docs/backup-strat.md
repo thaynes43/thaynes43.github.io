@@ -79,6 +79,8 @@ flux get kustomizations
 kubectl get helmreleases -n podinfo
 ```
 
+Side note, check out some CI stuff [here](https://fluxcd.io/flux/guides/helmreleases/#configure-webhook-receivers)
+
 ### Now for Velero
 
 Now that the flux stuff is out of the way we can follow [this guide](https://geek-cookbook.funkypenguin.co.nz/kubernetes/backup/velero/) in getting Velero up and running. We are also going to need off-cluster support for PVC snapshots which is listed as optional here.
@@ -100,6 +102,8 @@ sudo install -m 755 kubeseal /usr/local/bin/kubeseal
 ```
 
 Rest of the instructions worked but I didn't get into `Using our own keypair` for when the pod with the secrets go down, will need to look that over more when it's less late.
+
+May also be worth consulting [flux docs for sealed-secrets(https://fluxcd.io/flux/guides/sealed-secrets/) if something goes south.
 
 ##### Back to S3
 
@@ -160,6 +164,14 @@ Few issues checking if the automated backup worked this AM.
 1. The backup did not happen
 1. The logs are in the wrong timezone and gone for when the backup should have happen
 1. The pod restarted right when the backup would have been triggered given the timezone the pod is logging
+
+However the next backup worked, and I could have tested this via `velero backup create --from-schedule=velero-daily`, but I still need monitoring...
+
+##### Automated Backup Actually Worked
+
+I noticed two daily backups have been published but the timezone being off is making them in the future:
+
+![s3 automated backup]({{ site.url }}/images/web/s3-automated-backup.png)
 
 
 

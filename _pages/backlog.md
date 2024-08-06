@@ -16,6 +16,10 @@ The rest of this page is things I may or may not take on but don't want to lose 
 
 ### Web
 
+#### Lens
+
+See [lens](https://docs.k8slens.dev/) later...
+
 #### Comments for the Site
 
 * [disqus](https://disqus.com/) can be used to hold comments people make on these pages
