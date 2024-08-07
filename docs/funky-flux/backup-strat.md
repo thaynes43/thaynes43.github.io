@@ -1,6 +1,6 @@
 ---
 title: Backup Strategy for Everything (so far) 
-permalink: /docs/backup-strat/
+permalink: /docs/funky-flux/backup-strat/
 ---
 
 ## unRAID Dockers
@@ -173,6 +173,108 @@ I noticed two daily backups have been published but the timezone being off is ma
 
 ![s3 automated backup]({{ site.url }}/images/web/s3-automated-backup.png)
 
-
-
 ##### Restore from S3
+
+First we can use velero CLI to see the daily backup schedule is configured:
+
+```
+thaynes@kubevip:~$ velero get schedule
+NAME                   STATUS    CREATED                         SCHEDULE    BACKUP TTL   LAST BACKUP   SELECTOR   PAUSED
+velero-daily-backups   Enabled   2024-08-03 22:22:19 -0400 EDT   0 0 * * *   240h0m0s     18h ago       <none>     false
+```
+
+Now we can see what backups we have:
+
+```
+thaynes@kubevip:~$ velero get backups
+NAME                                  STATUS            ERRORS   WARNINGS   CREATED                         EXPIRES   STORAGE LOCATION   SELECTOR
+hellothere                            Completed         0        0          2024-08-03 23:06:57 -0400 EDT   26d       default            <none>
+velero-daily-backups-20240807000057   PartiallyFailed   1        0          2024-08-06 20:00:57 -0400 EDT   9d        default            <none>
+velero-daily-backups-20240806000021   Completed         0        0          2024-08-05 20:00:21 -0400 EDT   8d        default            <none>
+velero-daily-backups-20240805000049   Completed         0        0          2024-08-04 20:00:49 -0400 EDT   7d        default            <none>
+```
+
+Now we can kill what I backed up:
+
+```
+helm delete open-webui 
+```
+
+And try to restore it!
+
+```
+velero create restore --from-backup velero-daily-backups-20240806000021 --wait
+```
+
+So far so good:
+
+```
+Restore completed with status: Completed. You may check for more information using the commands `velero restore describe velero-daily-backups-20240806000021-20240807151327` and `velero restore logs velero-daily-backups-20240806000021-20240807151327`.
+```
+
+Well, it's back up but the users are gone. Err I don't think the volume was saved!
+
+##### Fixing Volumes
+
+First I will try enabling the CSI stuff in the velero helm chart. I ran this command after:
+
+```
+watch -n1 flux get kustomizations
+```
+
+Velero got stuck with `Unknown Reconciliation in progress` adn then failed a 2m health check.
+
+This was the error:
+
+```
+An error occurred: unable to register plugin (kind=BackupItemActionV2, name=velero.io/csi-pvc-backupper, command=/plugins/velero-plugin-for-csi) because another plugin is already registered for this kind and name (command=/velero)
+```
+
+Fast forward a bunch, from trying things to Flux getting stuck on a HelmRelease that wouldn't update (deleting it and commiting white space fixed that) I think I am in better shape. The internet says I need `deployNodeAgent` which gives me these guys:
+
+```
+velero                 node-agent-5x8t8                                            1/1     Running   0                3m18s
+velero                 node-agent-fjxvm                                            1/1     Running   0                3m18s
+velero                 node-agent-hls97                                            1/1     Running   0                3m18s
+```
+
+So now we can test...
+
+```
+velero backup create testbak1 --include-namespaces=default --wait
+```
+
+Can check it:
+
+```
+velero backup describe testbak1
+velero backup logs testbak1
+```
+
+Doesn't look great here:
+
+```
+Backup Volumes:
+  Velero-Native Snapshots: <none included>
+
+  CSI Snapshots: <none included>
+
+  Pod Volume Backups - restic (specify --details for more information):
+    Completed:  1
+
+```
+
+But we will try it.
+
+```
+helm delete open-webui
+velero create restore --from-backup testbak1 --wait
+```
+
+Restored without error:
+
+```
+Restore completed with status: Completed. You may check for more information using the commands `velero restore describe testbak1-20240807170848` and `velero restore logs testbak1-20240807170848`.
+```
+
+WOOOO my OpenWebUI user is still there! I guess that's a `Pod Volume Backups` backup.

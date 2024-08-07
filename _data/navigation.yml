@@ -74,7 +74,7 @@ adventuresnav:
       - title: Waydroid
         url: /docs/waydroid/
       - title: TODO Backup Strategy
-        url: /docs/backup-strat/
+        url: /docs/funky-flux/backup-strat/
       - title: POP!_OS
         url: /docs/pop-os/
       - title: Host Monitoring
@@ -86,7 +86,9 @@ adventuresnav:
       - title: NUT
         url: /docs/nut/
       - title: Logs
-        url: /docs/logs/
+        url: /docs/funky-flux/logs/
+      - title: Flux
+        url: /docs/funky-flux/flux/
 
 sheetsnav:
   - title: Cheat Sheets

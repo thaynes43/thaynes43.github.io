@@ -1,6 +1,6 @@
 ---
 title: Logs
-permalink: /docs/logs/
+permalink: /docs/funky-flux/logs/
 ---
 
 ## Grafana Loki
@@ -94,6 +94,17 @@ monitoring             prometheus-kube-prometheus-stack-prometheus-0            
 
 > **WARNING** The funky tutorials were great but set me up in a way that the official doc's now need to be modified. I'd rather not divert from what is most easily googled, even if it's a better pattern longer term, as I am still working out how to manage everything.
 
+### Recap Funky Flux
+
+Just so I don't have to sift through that nightmare again here's what I did to convert a Flux example repo to a Funky Flux repo:
+
+1. Created a Kustomization file in the `bootstap` folder that defined the "cluster" I was deploying where the "cluster" was one or more kustomizations in the folder specific to this deployment [589e0c7](https://github.com/thaynes43/flux-repo/commit/589e0c74159127ae46fc32a6730e9893d22dbbd9)
+2. Moved anything that created a namespace into `namespaces` where the creation of each namespace was it's own file [589e0c7](https://github.com/thaynes43/flux-repo/commit/589e0c74159127ae46fc32a6730e9893d22dbbd9)
+3. Moved anything that added a HelmRepo into `helmrepositories` where each repo was in it's own fine [589e0c7](https://github.com/thaynes43/flux-repo/commit/589e0c74159127ae46fc32a6730e9893d22dbbd9)
+4. Followed the pattern where the shared resources were running under `namespace: flux-system` and then pointed the cluster to this namespace for these resources. This makes sense as I wouldn't want to duplicate these shared resources for other apps. [bef9e39](https://github.com/thaynes43/flux-repo/commit/bef9e39e864a8ff4c89f315cb2b42eade30efe66) [e7f639c](https://github.com/thaynes43/flux-repo/commit/e7f639c822fb78cc4db838a87bdb8c4f0964810f)
+5. Made all the intervals in sync with the other clusters [bef9e39](https://github.com/thaynes43/flux-repo/commit/bef9e39e864a8ff4c89f315cb2b42eade30efe66) [10a8802](https://github.com/thaynes43/flux-repo/commit/10a88020d7c94670a006e6b86f95bf3efeb5eb75)
+6. Removed references to local resources for things moved to shared resources [994771f](https://github.com/thaynes43/flux-repo/commit/994771f8e8b62be782cda150c26f19c3d6ab59cd)
+
 ### Checking out Grafana 
 
 So what did I just install? Not much really, mostly Flux related stuff that I can see from Grafana but this should lay groundwork for adding more next.
@@ -111,6 +122,23 @@ And it worked!
 ![flux dash]({{ site.url }}/images/grafana/flux-dash.png)
 
 This is cool stuff and there's plenty of other dashboards to be added but we are here for logs. Fortunately it came with Loki. Unfortunately nothing seems to be making it's way in there but I don't really know how much flux logs. Sounds like I should [follow along here](https://fluxcd.io/flux/monitoring/logs/) to get flux logs in there.
+
+#### Grafana Nodeport
+
+To not have to manually forward the port I was able to define a `NodePort` for the service in the `values.yaml` override. 
+
+> This may not be the best way to do it and I think the funky tutorials may add other tools I can use but it's working well for now.
+
+```yaml
+    grafana:
+      defaultDashboardsEnabled: false
+      adminPassword: flux
+      service:
+        type: NodePort
+        port: 80
+        containerPort: 8080
+        nodePort: 30001
+```
 
 ### Getting Logs
 
@@ -137,7 +165,11 @@ Actually, I don't think I had to do that. Something seems wrong with the Flux da
 
 ![loki logs]({{ site.url }}/images/grafana/loki-logs.png)
 
-It works!
+It mostly works!
+
+### Fixing the Flux Dashboard
+
+TODO want to fix or delete it
 
 ### Persisting Logs Beyond The Pod
 
