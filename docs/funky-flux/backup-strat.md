@@ -1,7 +1,9 @@
 ---
-title: Backup Strategy for Everything (so far) 
+title: Backup Strategy (for everything!)
 permalink: /docs/funky-flux/backup-strat/
 ---
+
+> **TODO** I should break out the `funky-flux` portion of this an make a parent doc leading into each type of backup.
 
 ## unRAID Dockers
 
@@ -107,7 +109,7 @@ May also be worth consulting [flux docs for sealed-secrets(https://fluxcd.io/flu
 
 ##### Back to S3
 
-I can now create and store the sealed secret in a file though I can't kill the pod or I won't know how to get it back.
+I can now create and store the sealed secret in a file though I can't kill the pod or I won't know how to get it back(?)
 
 ```
 kubectl create secret generic -n velero velero-credentials \
