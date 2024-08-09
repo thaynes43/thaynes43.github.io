@@ -11,4 +11,12 @@ This will be the front page of building out my cluster using the patterns I've n
 
 A lot like these notes the author of this site has moved on to another project. He seemed to have started with docker swarm and later switched to k8s. This [premix](https://github.com/geek-cookbook/premix) repo has a handful of both but mostly compose files. But, for example, the [unifi](https://github.com/geek-cookbook/premix/tree/main/unifi/kubernetes) folder has both. This may be useful later on but I hope to eventually be able to funky flux anything on my own.
 
+## Some Useful Commands
 
+```
+flux logs
+flux get kustomizations --watch
+flux reconcile source git flux-system
+flux reconcile helmrelease -n <namespace> <name of helmrelease>
+flux reconcile kustomization <name of kustomization>
+```

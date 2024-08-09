@@ -89,6 +89,12 @@ adventuresnav:
         url: /docs/funky-flux/logs/
       - title: Flux
         url: /docs/funky-flux/flux/
+      - title: Certs
+        url: /docs/funky-flux/certs/
+      - title: External DNS
+        url: /docs/funky-flux/external-dns/
+      - title: Authentication
+        url: /docs/funky-flux/authentication/
 
 sheetsnav:
   - title: Cheat Sheets
