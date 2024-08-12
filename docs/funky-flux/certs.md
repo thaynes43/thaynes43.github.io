@@ -232,3 +232,63 @@ podinfo                     letsencrypt-wildcard-cert-example.com-staging       
 
 But now I have a weird version of `sealed-secrets` failing to start that isn't the tag I specified!!
 
+```
+thaynes@kubevip:~/workspace/cert-manager$ kubectl describe deployment sealed-secrets -n sealed-secrets
+Name:                   sealed-secrets
+Namespace:              sealed-secrets
+CreationTimestamp:      Sat, 03 Aug 2024 21:22:37 -0400
+Labels:                 app.kubernetes.io/instance=sealed-secrets
+                        app.kubernetes.io/managed-by=Helm
+                        app.kubernetes.io/name=sealed-secrets
+                        app.kubernetes.io/version=v0.16.0
+                        helm.sh/chart=sealed-secrets-1.16.1
+                        helm.toolkit.fluxcd.io/name=sealed-secrets
+                        helm.toolkit.fluxcd.io/namespace=sealed-secrets
+Annotations:            deployment.kubernetes.io/revision: 2
+                        meta.helm.sh/release-name: sealed-secrets
+                        meta.helm.sh/release-namespace: sealed-secrets
+Selector:               app.kubernetes.io/instance=sealed-secrets,app.kubernetes.io/name=sealed-secrets
+Replicas:               1 desired | 1 updated | 2 total | 1 available | 1 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:           app.kubernetes.io/instance=sealed-secrets
+                    app.kubernetes.io/name=sealed-secrets
+  Service Account:  sealed-secrets
+  Containers:
+   sealed-secrets:
+    Image:      quay.io/bitnami/sealed-secrets-controller:v0.16.0
+    Port:       8080/TCP
+    Host Port:  0/TCP
+    Command:
+      controller
+    Args:
+      --key-prefix
+      sealed-secrets-key
+    Liveness:     http-get http://:8080/healthz delay=0s timeout=1s period=10s #success=1 #failure=3
+    Readiness:    http-get http://:8080/healthz delay=0s timeout=1s period=10s #success=1 #failure=3
+    Environment:  <none>
+    Mounts:
+      /tmp from tmp (rw)
+  Volumes:
+   tmp:
+    Type:          EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:        
+    SizeLimit:     <unset>
+  Node-Selectors:  <none>
+  Tolerations:     <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    False   ProgressDeadlineExceeded
+OldReplicaSets:  sealed-secrets-7fbdddf68 (1/1 replicas created)
+NewReplicaSet:   sealed-secrets-f88f5fccb (1/1 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  33m   deployment-controller  Scaled up replica set sealed-secrets-f88f5fccb to 1
+```
+
+Fixed it with fiddling, was crazy.

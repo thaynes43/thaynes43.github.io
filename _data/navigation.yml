@@ -89,10 +89,12 @@ adventuresnav:
         url: /docs/funky-flux/logs/
       - title: Flux
         url: /docs/funky-flux/flux/
-      - title: Certs
-        url: /docs/funky-flux/certs/
       - title: External DNS
         url: /docs/funky-flux/external-dns/
+      - title: Certs
+        url: /docs/funky-flux/certs/
+      - title: Reverse Proxy
+      - url: /docs/funky-flux/reverse-proxy/
       - title: Authentication
         url: /docs/funky-flux/authentication/
 

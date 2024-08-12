@@ -84,3 +84,11 @@ external-dns-6979678bd9-4ppck   1/1     Running   0          3m20s
 ```
 
 All systems nominal!
+
+### But Wait - It's Fucked
+
+`external-dns` now crashes because it sees the entry it added. This was reported, fixed, and good to go in the version I can't use because of the helm chart angst so I will have to do some critical thinking. 
+
+## Unifi Webhook
+
+TODO https://github.com/kashalls/external-dns-unifi-webhook but first I gotta fix the shit hole of the other one
