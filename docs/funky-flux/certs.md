@@ -59,7 +59,7 @@ kubectl describe clusterissuer letsencrypt-prod
 Status:
   Acme:
     Last Private Key Hash:  f4g8fTo5jjGBpxg4vwYcSPkGW2UQVFuKF0kEoLBTSP4=
-    Last Registered Email:  manofoz@gmail.com
+    Last Registered Email:  test@gmail.com
     Uri:                    https://acme-v02.api.letsencrypt.org/acme/acct/1879879286
   Conditions:
     Last Transition Time:  2024-08-08T03:32:15Z

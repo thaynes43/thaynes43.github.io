@@ -23,7 +23,7 @@ One call out is we are putting it in a mode where all DNS entries will be define
 
 Now the annoying [sealed secret](https://geek-cookbook.funkypenguin.co.nz/kubernetes/sealed-secrets/):
 
-```
+```bash
   kubectl create secret generic cloudflare-api-token \
   --namespace external-dns \
   --dry-run=client \
