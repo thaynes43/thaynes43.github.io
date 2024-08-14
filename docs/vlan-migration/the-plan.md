@@ -20,7 +20,8 @@ I got pretty far into my cluster without flux so there was a mismatch between pa
 Step #1 was suck a disaster it deserved it's own fucking page. I'll summarize this here 
 
 1. ![Hayneslab VLAN Fiasco]({{ site.url }}/docs/vlan-migration/ip-disaster/) 
-1. ![K8s Migration]({{ site.url }}/docs/vlan-migration/k8s-migration/) 
+1. ![New k8s Cluster]({{ site.url }}/docs/vlan-migration/build-k3s-cluster/) 
+1. ![Re-Flux]({{ site.url }}/docs/vlan-migration/flux-migration/)
 
 ### Step2 1 - 3 ... Disaster
 

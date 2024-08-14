@@ -41,12 +41,14 @@ Then make a token (REDACTED).
 
 ##### Bootstrap & Run Flux
 
+```bash
 GITHUB_TOKEN=REDACTED \
 flux bootstrap github \
   --owner=thaynes43 \
   --repository=flux-repo \
   --personal \
   --path bootstrap
+```
 
 A new namespace was added with the following:
 
@@ -111,7 +113,7 @@ May also be worth consulting [flux docs for sealed-secrets(https://fluxcd.io/flu
 
 I can now create and store the sealed secret in a file though I can't kill the pod or I won't know how to get it back(?)
 
-```
+```bash
 kubectl create secret generic -n velero velero-credentials \
   --from-file=cloud=velero/awssecret \
   -o yaml --dry-run=client \
