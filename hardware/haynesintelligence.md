@@ -75,6 +75,8 @@ My goal starting out was to stick three GPUs into one build. After seeing the pr
 
 ![rx6800]({{ site.url }}/images/builds/haynesai/rx6800.png)
 
+> **NOTE** I didn't use this in the server after all but rather popped it on top of an MS-01. However, the hackintosh was not liking the card, XFX needs some work apparently, so I just used it to play Fortza with a racing wheel in my basement. 
+
 #### Seasonic Prime TX-1600
 
 Another reason not to have three beefy 3090s running under load is you may need two power supplies. Since the RX 6800 is not going to be topping out much a 1600W should do the trick for my needs. I grabbed the Seasonic Prime off [Amazon](https://www.amazon.com/Seasonic-ATX-3-0-TX-1600-SSR-1600TR2/dp/B0C571LRNB/ref=asc_df_B0C571LRNB/?tag=hyprod-20&linkCode=df0&hvadid=693562313188&hvpos=&hvnetw=g&hvrand=6616365365788663353&hvpone=&hvptwo=&hvqmt=&hvdev=c&hvdvcmdl=&hvlocint=&hvlocphy=9001911&hvtargid=pla-2186571992283&mcid=93c4c8f53b183a8aabb7b7dd5037c639&gad_source=1&th=1).
@@ -85,7 +87,7 @@ Interestlingly I can only pull around 1440W from a 15A 120V breaker so this PSU 
 
 ## The Build
 
-Coming Soon.. Still waiting on the case! 
+? **TODO** Add build photos etc
 
 ## OS 
 
@@ -95,7 +97,7 @@ The proxmox boot usb I'd been using refused to boot for this build. When googlin
 
 #### Raid 0 with Debian
 
-There are half a million guides on this, like [here](https://tuxfixer.com/debian-installation-with-lvm-raid-1-and-hot-spare/) I didn't have much luck with them, probably because I had no idea what I was doing. They were also all for `Raid 1` but here I'd prefer space to redundancy as I have plenty of redundent options and backups in place. I was thinking of this space more as the cache pool on [HaynesTower]]({{ site.url }}/hardware/haynestower/) (todo can link to cache pool info).
+There are half a million guides on this, like [here](https://tuxfixer.com/debian-installation-with-lvm-raid-1-and-hot-spare/) I didn't have much luck with them, probably because I had no idea what I was doing. They were also all for `Raid 1` but here I'd prefer space to redundancy as I have plenty of redundent options and backups in place. I was thinking of this space more as the cache pool on [HaynesTower]({{ site.url }}/hardware/haynestower/) (todo can link to cache pool info).
 
 I ended up using the guided partition on one drive, then converting the largest partition it created to raid. Then I added a raid partition on the second drive. I then created an MD Raid 0 with both raid partitions and it seemed to work. 
 
@@ -282,9 +284,9 @@ bingo bango that worked
 
 In a last ditch attempt I took all I applied and reimaged the VMs w/ a fresh copy of windows. Fortnite is the only game my son will play with me so it was the best chance at giving a tech demo with the two gaming VMs before moving on to the LLM which will steal the GPUs away.
 
-While installing Fortnite I noticed __epic__ write speeds:
+While installing Fortnite I noticed some decent write speeds:
 
-![epic write]({{ site.url }}/images/builds/haynesai/epic-write-speeds.png)
+![epic write]({{ site.url }}/images/builds/windows/epic-write-speeds.png)
 
 And it worked! At least I got into the game, but before I play I want a second controller.
 
@@ -296,7 +298,7 @@ One of the USB ports is acting weird and I only have three. I'm going to see if 
 
 I've documented the initial setup and usage for the LLMs over at [Pop!_OS]({{ site.url }}/docs/pop-os/). You can see that when prompting a 70B LLM this build is a powerhungry beast:
 
-![llm power consumption]({{ site.url }}/images/builds/haos/llm-power-consumption.png)
+![llm power consumption]({{ site.url }}/images/haos/llm-power-consumption.png)
 
 ## NAS
 
@@ -320,7 +322,7 @@ TODO what are these [helper scripts](https://tteck.github.io/Proxmox/#proxmox-ve
 
 Creating the pool was very easy. From the proxmox UI just click on the node -> Disks -> ZFS -> Create ZFS and fill out the form. I selected lz4 as TrueNAS recommends it and went with RAIDZ for single disk fault tolerance. RAIDZ2 for two disk tolerance was tempting but I don't ever plan to expand this past 10 disks. After I had this: 
 
-![raidz1 tank]({{ site.url }}/images/builds/proxmox/raidz1-tank.png)
+![raidz1 tank]({{ site.url }}/images/proxmox/raidz1-tank.png)
 
 ### Mapping
 
@@ -462,7 +464,7 @@ pct set 121 -mp0 /tank/data_root,mp=/mnt/data_root
 
 The UI has a way to do this to but you can verify the command worked via node -> Resources
 
-![zfs lxc mountpoint]({{ site.url }}/images/builds/proxmox/zfs-lxc-mountpoint.png)
+![zfs lxc mountpoint]({{ site.url }}/images/proxmox/zfs-lxc-mountpoint.png)
 
 And rebooting we can see the pool is mounted!
 
