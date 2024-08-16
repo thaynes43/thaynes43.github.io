@@ -213,7 +213,7 @@ But I think it worked. Next get a token which is where I think the comment from 
 kubectl oidc-login setup \
   --oidc-issuer-url=https://authentik.local.example.com/application/o/kube-apiserver/ \
   --oidc-client-id=kube-apiserver \
-  --oidc-client-secret=GETFROMAUTHENTIK \
+  --oidc-client-secret=REDACTED \
   --oidc-extra-scope=profile,email
   ```
 
@@ -295,7 +295,7 @@ You got a token with the following claims:
   "auth_time": 1723781186,
   "acr": "goauthentik.io/providers/oauth2/default",
   "nonce": "REDACTED",
-  "email": "myemail@haynesnetwork.com",
+  "email": "myemail@example.com",
   "email_verified": true,
   "name": "My Name",
   "given_name": "My Name",
@@ -311,13 +311,13 @@ You got a token with the following claims:
 
 Run the following command:
 
-	kubectl create clusterrolebinding oidc-cluster-admin --clusterrole=cluster-admin --user='https://authentik.local.haynesnetwork.com/application/o/kube-apiserver/#huuugeblob'
+	kubectl create clusterrolebinding oidc-cluster-admin --clusterrole=cluster-admin --user='https://authentik.local.example.com/application/o/kube-apiserver/#huuugeblob'
 
 ## 4. Set up the Kubernetes API server
 
 Add the following options to the kube-apiserver:
 
-	--oidc-issuer-url=https://authentik.local.haynesnetwork.com/application/o/kube-apiserver/
+	--oidc-issuer-url=https://authentik.local.example.com/application/o/kube-apiserver/
 	--oidc-client-id=kube-apiserver
 
 ## 5. Set up the kubeconfig
@@ -389,14 +389,14 @@ I am DONE with nomachine!!! Well, maybe not since I don't have any other CLI too
 Now it's time to lock this shit down.
 
 ```bash
-thaynes@kubem01:/etc/rancher/k3s$       kubectl config set-credentials oidc \
+thaynes@kubem01:/etc/rancher/k3s$       sudo kubectl config set-credentials oidc \
           --exec-api-version=client.authentication.k8s.io/v1beta1 \
           --exec-command=kubectl \
           --exec-arg=oidc-login \
           --exec-arg=get-token \
-          --exec-arg=--oidc-issuer-url=https://authentik.local.haynesnetwork.com/application/o/kube-apiserver/ \
+          --exec-arg=--oidc-issuer-url=https://authentik.local.example.com/application/o/kube-apiserver/ \
           --exec-arg=--oidc-client-id=kube-apiserver \
-          --exec-arg=--oidc-client-secret=GETFROMAUTHENTIK \
+          --exec-arg=--oidc-client-secret=REDACTED \
           --exec-arg=--oidc-extra-scope=profile \
           --exec-arg=--oidc-extra-scope=email
 User "oidc" set.
@@ -408,13 +408,12 @@ User "oidc" set.
 thaynes@kubem01:~/.kube$ kubectl --user=oidc cluster-info
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
-Error from server (Forbidden): services is forbidden: User "admin@haynesnetwork.com" cannot list resource "services" in API group "" in the namespace "kube-system"
+Error from server (Forbidden): services is forbidden: User "admin@example.com" cannot list resource "services" in API group "" in the namespace "kube-system"
 ```
 
 To get around this tretchery I need a `ClusterRoleBinding`. If this works I can permimently assume this poor sap's user ID with:
 
-#### Testing it All
-
+### Testing ODIC
 > **NOTE** It took me longer to get past here than the rest of the shit in this document. Turned out I needed `  - "oidc-groups-prefix=oidc:"` in that `config.yaml` file in the k3s directory.
 
 I shound now get in with `kubectl --user=oidc <do something>`.
@@ -442,7 +441,7 @@ Context "default" modified.
 But I think I can go back with:
 
 ```bash
-kubectl config set-context --current --user=admin
+kubectl config set-context --current --user=default
 ```
 
 Since that is what I got after:
@@ -455,7 +454,9 @@ system:admin
 
 I knew Krew would be helpful
 
-> **NOTE** the dude never made a guide for this but [weave](https://github.com/weaveworks/weave-gitops) can use these creds
+And here's it live!
+
+![kube auth]({{ site.url }}/gifs/k8s/kube-auth.png)
 
 #### Other Resources
 
@@ -466,3 +467,19 @@ https://medium.com/@extio/kubernetes-authentication-with-oidc-simplifying-identi
 https://kamrul.dev/kubernetes-oidc-authentication-gke/
 
 https://kamrul.dev/kubernetes-oidc-authentication-gke/
+
+> **NOTE** the dude never made a guide for this but [weave](https://github.com/weaveworks/weave-gitops) can use these creds
+
+#### HA Cluster
+
+I fixed a my kube config so the load balancer was used, `server: https://kube.example:6443`, but I started getting random access denied messages that cleared up by trying the same command twice. I think this is probably because I only ran though this setup on one master node. Will see if installing this stuff on the others and syncing the configs helps.
+
+Sure enough this fixed it
+
+## Google Workspace Sync
+
+First thing that caught my eye was the ability to sync with Google Workspace. [This guide](https://docs.goauthentik.io/docs/providers/gws/) looks to go over the details. 
+
+## Plex Social Log-in
+
+Coming Soon...

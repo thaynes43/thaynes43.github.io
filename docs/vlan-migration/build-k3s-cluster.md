@@ -81,7 +81,7 @@ iface eth0 inet static
         gateway 192.168.40.1
 ```
 
-    server haynesintelligence haynesintelligence.haynesnetwork:8006 check ssl verify none cookie haynesintelligence
+    server haynesintelligence haynesintelligence.example:8006 check ssl verify none cookie haynesintelligence
 
 Mr. 43 and Mrs. 42 got into a mess but eventually it sorted itself out for this nice and neat set of VMs:
 
@@ -134,9 +134,9 @@ events {}
 
 stream {
   upstream kube {
-    server kubem01.haynesnetwork:6443; # Change to the IP of the K3s first master VM
-    server kubem02.haynesnetwork:6443; # Change to the IP of the K3s second master VM
-    server kubem03.haynesnetwork:6443; # Change to the IP of the K3s third master VM
+    server kubem01.example:6443; # Change to the IP of the K3s first master VM
+    server kubem02.example:6443; # Change to the IP of the K3s second master VM
+    server kubem03.example:6443; # Change to the IP of the K3s third master VM
   }
 
   server {
@@ -185,10 +185,10 @@ sudo curl -sfL https://get.k3s.io | K3S_TOKEN=REDACTED sh -s - server \
     --disable traefik --disable servicelb \
     --node-taint CriticalAddonsOnly=true:NoExecute \
     --cluster-init \
-    --tls-san=kube.haynesnetwork \
-    --tls-san=kubem01.haynesnetwork \
-    --tls-san=kubem02.haynesnetwork \
-    --tls-san=kubem03.haynesnetwork              
+    --tls-san=kube.example \
+    --tls-san=kubem01.example \
+    --tls-san=kubem02.example \
+    --tls-san=kubem03.example              
 ```
 
 `thaynes@kubem01:~$ sudo /usr/local/bin/k3s-uninstall.sh` when it goes to hell...
@@ -223,11 +223,11 @@ curl -sfL https://get.k3s.io | K3S_TOKEN="REDACTED::server:REDACTED" sh -s - ser
     --disable traefik \
     --disable servicelb \
     --node-taint CriticalAddonsOnly=true:NoExecute \
-    --server https://kubem01.haynesnetwork:6443 \
-    --tls-san=kube.haynesnetwork \
-    --tls-san=kubem01.haynesnetwork \
-    --tls-san=kubem02.haynesnetwork \
-    --tls-san=kubem03.haynesnetwork
+    --server https://kubem01.example:6443 \
+    --tls-san=kube.example \
+    --tls-san=kubem01.example \
+    --tls-san=kubem02.example \
+    --tls-san=kubem03.example
 ```
 
 #### Join Workers
@@ -250,12 +250,33 @@ REDACTED::server:REDACTED
 ```
 
 ```
-curl -sfL https://get.k3s.io | K3S_URL=https://kube.haynesnetwork:6443 K3S_TOKEN="REDACTED::server:REDACTED" sh -
+curl -sfL https://get.k3s.io | K3S_URL=https://kube.example:6443 K3S_TOKEN="REDACTED::server:REDACTED" sh -
 ```
 
 #### Wrapping Up K8S
 
-After that I copied the k3s config to `~/.kube/config` and [enabled kubectl auto complete](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#optional-kubectl-configurations-and-plugins) for both the command and the alias `k`.
+After that I copied the k3s config to `~/.kube/config` and configured it to use the load balancer IP. Then make it official with `sudo chmod 600 ~/.kube/config && export KUBECONFIG=~/.kube/config`.
+
+> **NOTE** This IP seems to get overwritten when `k3s.yaml` changes, so if you don't do the KUBECONFIG env var you can probably just change everything in the k3s.yaml too with `sudo nano /etc/rancher/k3s.yaml`.
+
+I also [enabled kubectl auto complete](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#optional-kubectl-configurations-and-plugins) for both the command and the alias `k`.
+
+### k3s config.yaml
+
+Later I learned that some extra configs were needed. These can be added when creating the cluster. just create a file `/etc/rancher/k3s/config.yaml` and add the configuration overrides needed. For now I am using:
+
+```yaml
+write-kubeconfig-mode: "0644"
+kube-apiserver-arg:
+  - "oidc-issuer-url=https://authentik.local.example.com/application/o/kube-apiserver/"
+  - "oidc-client-id=kube-apiserver"
+  - "oidc-username-claim=email"
+  - "oidc-groups-claim=groups"
+  - "oidc-groups-prefix=oidc:"
+```
+
+k3s.yaml is still giving me permissions trouble, [this doc](https://thriveread.com/unable-to-read-etc-rancher-k3s-k3s-yaml-error/) has a slew of messy ideas.
+
 
 ### Installing Previously Installed Dependencies 
 
@@ -265,7 +286,7 @@ Time to get cooking. Fortunately these are mostly fresh in my mind.
 
 I remembered this one though it was broken in the guide:
 
-```
+```bash
 wget https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.27.1/kubeseal-0.27.1-linux-amd64.tar.gz
 tar -xvf kubeseal-0.27.1-linux-amd64.tar.gz
 sudo install -m 755 kubeseal /usr/local/bin/kubeseal
@@ -273,7 +294,7 @@ sudo install -m 755 kubeseal /usr/local/bin/kubeseal
 
 #### Installing Velero CLI
 
-```
+```bash
 wget https://github.com/vmware-tanzu/velero/releases/download/v1.14.0/velero-v1.14.0-linux-amd64.tar.gz
 tar -xvf velero-v1.14.0-linux-amd64.tar.gz
 sudo install -m 755 velero /usr/local/bin/velero
@@ -283,4 +304,33 @@ sudo install -m 755 velero /usr/local/bin/velero
 
 ```
 curl -s https://fluxcd.io/install.sh | sudo bash
+```
+
+### Installing Things Discovered Later
+
+Just to keep everything on one page if, incase I need a new cluster, anything installed later will be added below:
+
+#### Install Krew & Plugins
+
+Check the [krew docks](https://krew.sigs.k8s.io/docs/user-guide/setup/install/) on how to install this. Then install a plugin called [kubelogin](https://github.com/int128/kubelogin).
+
+Then:
+
+```bash
+kubectl krew install oidc-login
+kubectl krew install whoami
+```
+
+#### .bashrc
+
+For reference here is what I accumulated in .bashrc doing this. I recommend adding when each doc recommends and just referencing this to see if anything was missed.
+
+```bash
+# Custom K8s Stuff
+source <(kubectl completion bash)
+alias k=kubectl
+complete -o default -F __start_kubectl k
+source /usr/share/bash-completion/bash_completion
+export KUBECONFIG=~/.kube/config
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 ```
