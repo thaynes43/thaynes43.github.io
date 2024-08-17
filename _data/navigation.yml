@@ -97,6 +97,8 @@ adventuresnav:
       - url: /docs/funky-flux/reverse-proxy/
       - title: Authentication
         url: /docs/funky-flux/authentication/
+      - title: Kubernetes Dashboard
+        url: /docs/funky-flux/kube-dashboard/
 
 sheetsnav:
   - title: Cheat Sheets

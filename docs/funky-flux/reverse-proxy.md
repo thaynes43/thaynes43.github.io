@@ -472,7 +472,7 @@ letsencrypt-wildcard-cert-haynesnetwork.com           kubernetes.io/tls    2    
 letsencrypt-wildcard-cert-haynesnetwork.com-staging   kubernetes.io/tls    2      25s
 ```
 
-#### Go Back A Setp
+#### Go Back A Step
 
 I am going to go over the official traefik guides because the funky shortcuts are not working. First I want to setup [whoami](https://hub.docker.com/r/traefik/whoami). This is used in the [getting started example](https://traefik.io/blog/install-and-configure-traefik-with-helm/) but does not have a helm chart so that'll be interesting.
 
@@ -562,3 +562,8 @@ letsencrypt-wildcard-cert   letsencrypt-wildcard-cert-local.haynesnetwork.com-st
 letsencrypt-wildcard-cert   letsencrypt-wildcard-cert-local.haynesnetwork.com-st-2968352926   pending   local.haynesnetwork.com   13s
 ```
 
+## Circle Back for Dashboard SSO
+
+Now that more stuff is set up I can circle back and add SSO for the dashboard as we did for the ![Kubernetes Dashboard]({{ site.url }}/docs/funky-flux/kube-dashboard/).
+
+> **TODO** Do THIS PART
