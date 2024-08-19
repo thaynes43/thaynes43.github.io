@@ -14,7 +14,17 @@ First I should really
 
 The rest of this page is things I may or may not take on but don't want to lose track of. 
 
-### Web
+### Kube
+
+* See what [kubevip](https://kube-vip.io/docs/installation/) is all about!
+* Use the [Fail2Ban](https://plugins.traefik.io/plugins/628c9ebcffc0cd18356a979f/fail2-ban) Middleware for traefik and explore what other middleware is offered
+* Open WebUI w/ SSO
+* Finish or delete `whoami` Helmrelease
+* Finish or delete `podinfo` Helmrelease
+* Delete the nginx example deployment / ingress / DNS entry
+* Setup `external-dns` to add UniFi DNS entries
+* Get IoT Started
+* Migrate media management & download clients
 
 #### Lens
 
@@ -192,7 +202,6 @@ https://192.168.0.14:8007/#pbsDashboard
 https://docs.nvidia.com/deeplearning/frameworks/user-guide/index.html#runcont
 https://github.com/thaynes43/thaynes43.github.io
 http://kubevip.haynesnetwork:32181/2024/05/13/hello-world/#comment-3
-https://ai.haynesnetwork.com/auth
 https://us.moshi.chat/
 http://homeassistant.local:8123/config/devices/device/e38c74aea575987ca65cc36877dccb1e
 https://openai.com/index/hello-gpt-4o/

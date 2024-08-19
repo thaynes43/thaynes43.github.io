@@ -398,11 +398,11 @@ After a lot of fiddling I was able to get to the podinfo page and traefik dashba
 ```
 thaynes@kubevip:~/workspace$ kubectl get ingress -A -o wide
 NAMESPACE   NAME                CLASS     HOSTS                       ADDRESS        PORTS   AGE
-podinfo     podinfo             traefik   podinfo.haynesnetwork.com   192.168.0.37   80      10h
-traefik     traefik-dashboard   <none>    traefik.haynesnetwork.com   192.168.0.37   80      8h
+podinfo     podinfo             traefik   podinfo.example.com   192.168.0.37   80      10h
+traefik     traefik-dashboard   <none>    traefik.example.com   192.168.0.37   80      8h
 ```
 
-Note traefik still needs: http://traefik.haynesnetwork.com/dashboard/. 
+Note traefik still needs: http://traefik.example.com/dashboard/. 
 
 This involved:
 
@@ -429,7 +429,7 @@ This should be done via:
       tls:
         - secretName: letsencrypt-wildcard-cert-example.com
           hosts:
-            - podinfo.haynesnetwork.com
+            - podinfo.example.com
 ```
 
 Seemingly easy enough...
@@ -439,11 +439,11 @@ I now have 443 listed!
 ```
 thaynes@kubevip:~/workspace$ kubectl get ingress -A
 NAMESPACE   NAME                CLASS     HOSTS                       ADDRESS        PORTS     AGE
-podinfo     podinfo             traefik   podinfo.haynesnetwork.com   192.168.0.37   80, 443   11h
-traefik     traefik-dashboard   <none>    traefik.haynesnetwork.com   192.168.0.37   80        10h
+podinfo     podinfo             traefik   podinfo.example.com   192.168.0.37   80, 443   11h
+traefik     traefik-dashboard   <none>    traefik.example.com   192.168.0.37   80        10h
 ```
 
-But I am being redirected to http for some reason: `http://podinfo.haynesnetwork.com/`.
+But I am being redirected to http for some reason: `http://podinfo.example.com/`.
 
 The cert doesn't seem to work, I'm going to try and reflect them to the traefik namespace and rename them from:
 
@@ -459,8 +459,8 @@ To:
 ```
 thaynes@kubevip:~/workspace$ kubectl get certificate -A
 NAMESPACE                   NAME                                                  READY   SECRET                                                AGE
-letsencrypt-wildcard-cert   letsencrypt-wildcard-cert-haynesnetwork.com           True    letsencrypt-wildcard-cert-haynesnetwork.com           8s
-letsencrypt-wildcard-cert   letsencrypt-wildcard-cert-haynesnetwork.com-staging   True    letsencrypt-wildcard-cert-haynesnetwork.com-staging   8s
+letsencrypt-wildcard-cert   letsencrypt-wildcard-cert-example.com           True    letsencrypt-wildcard-cert-example.com           8s
+letsencrypt-wildcard-cert   letsencrypt-wildcard-cert-example.com-staging   True    letsencrypt-wildcard-cert-example.com-staging   8s
 ```
 
 And traefik now has these:
@@ -468,8 +468,8 @@ And traefik now has these:
 ```
 thaynes@kubevip:~/workspace$ kubectl get secret -n traefik 
 NAME                                                  TYPE                 DATA   AGE
-letsencrypt-wildcard-cert-haynesnetwork.com           kubernetes.io/tls    2      28s
-letsencrypt-wildcard-cert-haynesnetwork.com-staging   kubernetes.io/tls    2      25s
+letsencrypt-wildcard-cert-example.com           kubernetes.io/tls    2      28s
+letsencrypt-wildcard-cert-example.com-staging   kubernetes.io/tls    2      25s
 ```
 
 #### Go Back A Step
@@ -558,12 +558,67 @@ Making local certs for staging first:
 ```
 thaynes@kubevip:~/workspace/traefik$ kubectl get challenges -A
 NAMESPACE                   NAME                                                              STATE     DOMAIN                    AGE
-letsencrypt-wildcard-cert   letsencrypt-wildcard-cert-local.haynesnetwork.com-st-169214188              local.haynesnetwork.com   13s
-letsencrypt-wildcard-cert   letsencrypt-wildcard-cert-local.haynesnetwork.com-st-2968352926   pending   local.haynesnetwork.com   13s
+letsencrypt-wildcard-cert   letsencrypt-wildcard-cert-local.example.com-st-169214188              local.example.com   13s
+letsencrypt-wildcard-cert   letsencrypt-wildcard-cert-local.example.com-st-2968352926   pending   local.example.com   13s
 ```
 
 ## Circle Back for Dashboard SSO
 
 Now that more stuff is set up I can circle back and add SSO for the dashboard as we did for the ![Kubernetes Dashboard]({{ site.url }}/docs/funky-flux/kube-dashboard/).
 
-> **TODO** Do THIS PART
+I followed the exact same steps as the ![kube-dashboard]({{ site.url }}/docs/funky-flux/kube-dashboard/) proxy but I made some tweaks to the outpost config:
+
+```yaml
+log_level: info
+docker_labels: null
+authentik_host: https://authentik.example.com/
+docker_network: null
+container_image: null
+docker_map_ports: true
+refresh_interval: minutes=5
+kubernetes_replicas: 3 # Was 1, Boosted to three to match other replicas for authentik 
+kubernetes_namespace: authentik
+authentik_host_browser: ""
+object_naming_template: ak-outpost-%(name)s
+authentik_host_insecure: false
+kubernetes_json_patches: null
+kubernetes_service_type: ClusterIP
+kubernetes_image_pull_secrets: []
+kubernetes_ingress_class_name: traefik # was null but was putting things in the wrong namespace
+kubernetes_disabled_components: []
+kubernetes_ingress_annotations: {}
+kubernetes_ingress_secret_name: authentik-outpost-tls # tried "" but still got errors until I changed kubernetes_ingress_class_name and then I could add this back
+```
+
+I set 
+
+Then I swapped the middleware for the traefik dashboard:
+
+```
+@@ -12,7 +12,7 @@ spec:
+     - match: Host(`traefik.local.example.com`) # TODO setup external-dns to do Unifi entries for local stuff
+       kind: Rule
+       middlewares:
+-        - name: traefik-dashboard-basicauth
++        - name: authentik-auth-proxy
+           namespace: traefik
+       services:
+         - name: api@internal
+```
+
+And it worked like a charm!
+
+> **Note** I am still getting the error for kubernetes_ingress_secret_name not in the traefik namespace, need to get rid of the ingress this automatically created too
+
+```
+2024-08-18 11:42:04	2024-08-18T15:42:04Z ERR github.com/traefik/traefik/v3/pkg/provider/kubernetes/ingress/kubernetes.go:254 > Error configuring TLS error="secret authentik/authentik-outpost-tls does not exist" ingress=ak-outpost-auth-proxy-outpost namespace=authentik providerName=kubernetes
+```
+
+I thought `kubernetes_ingress_class_name:` to `traefik` on both outposts fixed the errors. But they seemed to just slow down a bit:
+
+```
+2024-08-18 11:52:16	2024-08-18T15:52:16Z ERR github.com/traefik/traefik/v3/pkg/provider/kubernetes/ingress/kubernetes.go:254 > Error configuring TLS error="secret authentik/authentik-outpost-tls does not exist" ingress=ak-outpost-auth-proxy-outpost namespace=authentik providerName=kubernetes
+```
+
+Will try my trusty `kubernetes_ingress_secret_name: certificate-local.example.com` secret which is present in the namespace.
+

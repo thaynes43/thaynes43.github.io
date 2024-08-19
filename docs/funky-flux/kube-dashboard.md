@@ -32,7 +32,7 @@ config:
     email_domains = [ "*" ]
     upstreams = [ "http://kubernetes-dashboard" ]
     provider = "oidc"
-    oidc_issuer_url = "https://authentik.local.example.com/application/o/kube-apiserver/"    
+    oidc_issuer_url = "https://authentik.example.com/application/o/kube-apiserver/"    
 ```
 
 > **Note** provider & oidc_issuer_url were added after funky man did his doc
@@ -110,7 +110,7 @@ Defaulted container "oauth2-proxy" out of: oauth2-proxy, wait-for-redis (init)
 Getting closer, no redirect though:
 
 ```json
-	{"auth_via": "session", "domain_url": "authentik.local.example.com", "event": "Invalid redirect uri (regex comparison)", "host": "authentik.local.example.com", "level": "warning", "logger": "authentik.providers.oauth2.views.authorize", "pid": 18133, "redirect_uri_expected": ["http://localhost:8000"], "redirect_uri_given": "https://kubedash.local.example.com/oauth2/callback", "request_id": "ba67711357fc4baa8bf5f9dbfadb7f5e", "schema_name": "public", "timestamp": "2024-08-16T21:47:53.910641"}
+	{"auth_via": "session", "domain_url": "authentik.example.com", "event": "Invalid redirect uri (regex comparison)", "host": "authentik.example.com", "level": "warning", "logger": "authentik.providers.oauth2.views.authorize", "pid": 18133, "redirect_uri_expected": ["http://localhost:8000"], "redirect_uri_given": "https://kubedash.local.example.com/oauth2/callback", "request_id": "ba67711357fc4baa8bf5f9dbfadb7f5e", "schema_name": "public", "timestamp": "2024-08-16T21:47:53.910641"}
 ```
 
 Going to try:
@@ -130,14 +130,16 @@ authentik-kubedash-redirect.png
 ```yaml
     extraArgs:
     ...
-      redirect-url: "https://kubedash.local.example.com/oauth2/callback/"
+      redirect-url: "https://kubedash.example.com/oauth2/callback/"
 ```
 
 Getting closer but now it just bounces right back:
 
 ```json
-	{"action": "authorize_application", "auth_via": "session", "client_ip": "10.42.7.1", "context": {"authorized_application": {"app": "authentik_core", "model_name": "application", "name": "Hayneslab Kubernetes", "pk": "aa831c187bfd42cda3bddd95473c7455"}, "flow": "dfa84f6b3a1547119e49c2929d59d409", "http_request": {"args": {"approval_prompt": "force", "client_id": "kube-apiserver", "redirect_uri": "https://kubedash.local.example.com/oauth2/callback/", "response_type": "code", "scope": "openid email profile", "state": "_QNr3TEb1CXbYK9ccp0ubCEpYAP2Gjw9cELv0-NcAWI:/"}, "method": "GET", "path": "/api/v3/flows/executor/default-provider-authorization-implicit-consent/", "request_id": "6cfae8591e4a4553b37d9a817dafb85e", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"}, "scopes": "openid profile email"}, "domain_url": "authentik.local.example.com", "event": "Created Event", "host": "authentik.local.example.com", "level": "info", "logger": "authentik.events.models", "pid": 27183, "request_id": "6cfae8591e4a4553b37d9a817dafb85e", "schema_name": "public", "timestamp": "2024-08-17T04:10:11.608400", "user": {"email": "admin@example.com", "pk": 9, "username": "example"}}
+	{"action": "authorize_application", "auth_via": "session", "client_ip": "10.42.7.1", "context": {"authorized_application": {"app": "authentik_core", "model_name": "application", "name": "Hayneslab Kubernetes", "pk": "aa831c187bfd42cda3bddd95473c7455"}, "flow": "dfa84f6b3a1547119e49c2929d59d409", "http_request": {"args": {"approval_prompt": "force", "client_id": "kube-apiserver", "redirect_uri": "https://kubedash.example.com/oauth2/callback/", "response_type": "code", "scope": "openid email profile", "state": "_QNr3TEb1CXbYK9ccp0ubCEpYAP2Gjw9cELv0-NcAWI:/"}, "method": "GET", "path": "/api/v3/flows/executor/default-provider-authorization-implicit-consent/", "request_id": "6cfae8591e4a4553b37d9a817dafb85e", "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0"}, "scopes": "openid profile email"}, "domain_url": "authentik.example.com", "event": "Created Event", "host": "authentik.example.com", "level": "info", "logger": "authentik.events.models", "pid": 27183, "request_id": "6cfae8591e4a4553b37d9a817dafb85e", "schema_name": "public", "timestamp": "2024-08-17T04:10:11.608400", "user": {"email": "admin@example.com", "pk": 9, "username": "example"}}
 ```
+
+> **IDEA** After setting some other stuff up I think I would have had better success if I set up a new Provider w/ it's own redirect for this OAuth2-Proxy
 
 ## PIVOT
 
@@ -302,3 +304,114 @@ I could also pass the token somehow in my `IngressRoute` but let's try all that 
 However, that didn't work. So I just copy pasted the token to log in. I don't know if I'll use this dashboard much so I don't want to invest much more time here. I have a log in screen now and sometimes I may need to paste in a huge token.
 
 I can now circle back and put better auth around my traefik dashboard!
+
+### Even That Didn't Work
+
+I guess that token only lasted 1hr so I'm gonna shoot for something a bit longer. First we need a secret:
+
+`nano kubedash-loglived.yaml`
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kubedash-admin
+  namespace: kubernetes-dashboard
+  annotations:
+    kubernetes.io/service-account.name: kubedash-admin
+type: kubernetes.io/service-account-token
+```
+
+This time we just force it in there to get the token. We can add the crd to the cluster if we really want but it's a hack no matter what.
+
+`kubectl create -f kubedash-loglived.yaml`
+
+Extract!
+
+```bash
+kubectl get secret kubedash-admin -n kubernetes-dashboard -o jsonpath={".data.token"} | base64 -d
+```
+
+
+Re seal the long lived one:
+
+```bash
+  kubectl create secret generic kubedash-admin-token \
+  --namespace kubernetes-dashboard \
+  --dry-run=client \
+  --from-literal=token=HUGETOKEN -o json \
+  | kubeseal --controller-name=sealed-secrets --controller-namespace=sealed-secrets --cert pub-cert.pem --format yaml \
+  > sealedsecret-kubedash-admin-token.yaml
+```
+
+NOPE
+
+### Pass It As a Header
+
+#### Either do this:
+
+```bash
+kubectl create secret generic kubedash-admin-token-header \
+  --namespace traefik \
+  --dry-run=client \
+  --from-literal=authorization="Bearer HUGETOKEN" -o json \
+  | kubeseal --controller-name=sealed-secrets --controller-namespace=sealed-secrets --cert pub-cert.pem --format yaml \
+  > sealedsecret-kubedash-admin-token-header.yaml
+```
+
+#### Or roll the dice with this:
+
+```bash
+echo -n "Bearer HUGETOKEN" | base64
+```
+
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dashboard-token-secret
+  namespace: kube-system
+type: Opaque
+data:
+  authorization: CRAZYHUGETOKEN
+```
+
+#### Pass Secret Via ENV
+
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kubedash-auth-token
+  namespace: traefik
+data:
+  auth-token: |
+    $(kubectl get secret kubedash-admin-token-header -o jsonpath='{.data.authorization}' | base64 --decode)
+```
+
+##### Load ENV in Traefik Helm
+
+```yaml
+env:
+    - name: BEARER_TOKEN
+      valueFrom:
+        configMapKeyRef:
+        name: kubedash-auth-token
+        key: auth-token
+```
+
+##### Pass Via Middleware
+
+```yaml
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: forward-bearer-token-auth-header
+  namespace: kube-system
+spec:
+  headers:
+    customRequestHeaders:
+      Authorization: "${BEARER_TOKEN}"
+```
+
+> **WARNING** Still have not got any of that to work so I just plugged the long lived one in and will likely not worry about it ever again.

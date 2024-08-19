@@ -10,6 +10,9 @@ Things moved quick to get the cluster up and running, leaving behind some tech d
 1. Three proxmox nodes are still on the Default network
 1. HelmReleases can't be deployed because they include CRDs that need to be created by the chart
 1. MINOR few secrets did not have `--format yaml` when sealed and are json
+1. `Kustomizations` in the bootstrap folder are inconsistent. Ordering is different and some have `retryInterval: 1m` and `wait: true` while others don't.
+1. Podinfo and Whoami were setup for tutorials but don't really work right now, either delete them or fix them.
+1. Check `/etc/hosts/` and `/etc/resolve.conf` on VMs that changed subnets
 
 ### Move Everything Else to Hayneslab VLAN
 
@@ -22,11 +25,40 @@ All hosts will fall within the range 192.168.40.6-192.168.40.39. Three in the pr
 | pve03 | 192.168.40.8 | y |
 | pve04 | 192.168.40.9 | y |
 | pve05 | 192.168.40.10 | y |
-| filet01-pve | 192.168.40.11 | n |
-| filet02-pve | 192.168.40.12 | n |
-| HaynesIntelligence | 192.168.40.12 | n |
+| HaynesIntelligence | 192.168.40.11 | n |
+| filet01-pve | 192.168.40.12 | n |
+| filet02-pve | 192.168.40.13 | n |
 | ---- | ---Not on Proxmox--- | ---- |
 | HaynesTower | 192.168.40.39 | y |
+
+##### HaynesIntelligence to VLAN
+
+Should be easier because no ceph.
+
+1. Roll out `/etc/pve/corosync.conf` changes with the anticipated IP, `192.168.40.11`, and restart it `systemctl restart corosync`. You will now be alone as a node.
+1. Edit `/etc/hosts` and `/etc/resolv.conf`, change DNS and interfaces to `192.168.40.11` and THEN add VLAN for port of switch
+1. `ifdown vmbr0; ifup vmbr0` for good measure
+1. On node run `systemctl restart corosync` and `systemctl restart pve-cluster`
+1. On every other node that are in the cluster run `systemctl restart corosync` and check with `cat /etc/pve/.members`
+1. Reboot node
+
+###### HaynesIntelligence VMs
+
+FIRST update DNS entry or it gets weird.
+
+```
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+        address 192.168.40.52/24
+        gateway 192.168.40.1
+```
+
+Then refresh with `ifdown eth0; ifup eth0`
+
+> **NOTE** Next time check if anyone is using the designated IP (looking at you Tower11). And SHUT EVERY VM DOWN OH MY GOD!
 
 #### VMs & LXCs - 192.168.40.40-192.168.40.99
 
@@ -45,11 +77,30 @@ Critical functions and new VMs have been switched over but many are offline and 
 | pvedash | 192.168.40.49 | y |
 | haos-pve | 192.168.40.50 | y |
 | cephdash | 192.168.40.51 | y |
-| todo | 192.168.40.52 | n |
+| ---- | Skip to HaynesIntelligence | ---- |
+| nas01 | 192.168.40.52 | y |
+| nut02 | 192.168.40.53 | y |
+| pop01 | 192.168.40.54 | y |
+| WinGaming01 | 192.168.40.55 | n |
+| WinGaming02 | 192.168.40.56 | n |
+| ---- | Back to MS-01s | ---- |
+| android-x86 | 192.168.40.57 | n |
+| ubuntu01 | 192.168.40.58 | n |
+| mac01 | 192.168.40.59 | n |
+| mac02 | 192.168.40.60 | n |
+| windows11-01 | 192.168.40.61 | n |
+| windows11-02 | 192.168.40.62 | n |
+| windows11-03 | 192.168.40.63 | n |
+| WinGaming03 | 192.168.40.64 | n |
+| ubundroid | 192.168.40.65 | n |
+| waydroid01 | 192.168.40.66 | n |
+| haynesdroid | 192.168.40.67 | n |
+| ---- | ---Needs Host First--- | ---- |
+| nut01 | 192.168.40.68 | n |
 | ---- | ---Not on Proxmox--- | ---- |
 | haos | 192.168.40.90 | y |
 | pbs | 192.168.40.91 | y |
-| Tower11VM | 192.168.40.92 | n |
+| Tower11VM | 192.168.40.92 | y |
 
 ### Rearranged some stuff in flux-repo
 
@@ -96,14 +147,14 @@ After all that the challenges are rolling in:
 ```
 thaynes@kubem01:~/workspace$ k get challenges -A
 NAMESPACE      NAME                                                              STATE     DOMAIN                    AGE
-certificates   certificate-haynesnetwork.com-1-1856466766-2095207381             pending   haynesnetwork.com         89s
-certificates   certificate-haynesnetwork.com-1-1856466766-2980001469                       haynesnetwork.com         88s
-certificates   certificate-haynesnetwork.com-staging-1-2739062974-1720542754     valid     haynesnetwork.com         89s
-certificates   certificate-haynesnetwork.com-staging-1-2739062974-2508974029               haynesnetwork.com         88s
-certificates   certificate-local.haynesnetwork.com-1-112412607-1491899551        pending   local.haynesnetwork.com   88s
-certificates   certificate-local.haynesnetwork.com-1-112412607-1603840806                  local.haynesnetwork.com   88s
-certificates   certificate-local.haynesnetwork.com-staging-1-357645-2914321792             local.haynesnetwork.com   87s
-certificates   certificate-local.haynesnetwork.com-staging-1-357645-2987784459             local.haynesnetwork.com   87s
+certificates   certificate-example.com-1-1856466766-2095207381             pending   example.com         89s
+certificates   certificate-example.com-1-1856466766-2980001469                       example.com         88s
+certificates   certificate-example.com-staging-1-2739062974-1720542754     valid     example.com         89s
+certificates   certificate-example.com-staging-1-2739062974-2508974029               example.com         88s
+certificates   certificate-local.example.com-1-112412607-1491899551        pending   local.example.com   88s
+certificates   certificate-local.example.com-1-112412607-1603840806                  local.example.com   88s
+certificates   certificate-local.example.com-staging-1-357645-2914321792             local.example.com   87s
+certificates   certificate-local.example.com-staging-1-357645-2987784459             local.example.com   87s
 ```
 
 Hope we make it across the finish line!

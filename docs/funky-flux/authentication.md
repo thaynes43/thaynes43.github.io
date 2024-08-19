@@ -110,6 +110,23 @@ I mostly followed the guide but plugged in `2024.6.x` for the chart since these 
           storageClass: ceph-rbd 
 ```
 
+#### DNSEntry 
+
+```yaml
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: "authentik.example.com"
+  namespace: external-dns
+spec:
+  endpoints:
+  - dnsName: "authentik.example.com"
+    recordTTL: 180
+    recordType: CNAME
+    targets:
+    - "example.com"
+```
+
 #### Ingress
 
 ```yaml
@@ -117,11 +134,11 @@ I mostly followed the guide but plugged in `2024.6.x` for the chart since these 
         enabled: true
         ingressClassName: traefik
         hosts:
-          - authentik.local.example.com
+          - authentik.example.com
         tls:
           - secretName: certificate-local.example.com
             hosts:
-              - authentik.local.example.com  
+              - authentik.example.com  
 ```
 
 > **WARNING** I did not end up using this but I don't believe it was related to the issues I was experiencing.
@@ -140,7 +157,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`authentik.local.example.com`) # TODO setup external-dns to do Unifi entries for local stuff
+    - match: Host(`authentik.example.com`)
       kind: Rule
       middlewares:
         - name: default-headers
@@ -149,7 +166,7 @@ spec:
           port: 80
           namespace: authentik
   tls:
-    secretName: certificate-local.example.com
+    secretName: certificate.example.com
 ```
 
 ### Troubleshooting
@@ -190,7 +207,7 @@ First I need to update some k3s config and reboot k3s to enable this fancy authe
 
 ```yaml
 kube-apiserver-arg:
-  - "oidc-issuer-url=https://authentik.local.example.com/application/o/kube-apiserver/"
+  - "oidc-issuer-url=https://authentik.example.com/application/o/kube-apiserver/"
   - "oidc-client-id=kube-apiserver"
   - "oidc-username-claim=email"
   - "oidc-groups-claim=groups"
@@ -211,7 +228,7 @@ But I think it worked. Next get a token which is where I think the comment from 
 
 ```
 kubectl oidc-login setup \
-  --oidc-issuer-url=https://authentik.local.example.com/application/o/kube-apiserver/ \
+  --oidc-issuer-url=https://authentik.example.com/application/o/kube-apiserver/ \
   --oidc-client-id=kube-apiserver \
   --oidc-client-secret=REDACTED \
   --oidc-extra-scope=profile,email
@@ -275,11 +292,10 @@ The command was super cool. It gave me a document even which I can format in a m
 
 ```bash
 thaynes@kubem01:/etc/rancher/k3s$ kubectl oidc-login setup \
-  --oidc-issuer-url=https://authentik.local.example.com/application/o/kube-apiserver/ \
+  --oidc-issuer-url=https://authentik.example.com/application/o/kube-apiserver/ \
   --oidc-client-id=kube-apiserver \
   --oidc-client-secret=GETFROMAUTHENTIK \
   --oidc-extra-scope=profile,email
-authentication in progress...
 authentication in progress...
 
 ## 2. Verify authentication
@@ -287,7 +303,7 @@ authentication in progress...
 You got a token with the following claims:
 
 {
-  "iss": "https://authentik.local.example.com/application/o/kube-apiserver/",
+  "iss": "https://authentik.example.com/application/o/kube-apiserver/",
   "sub": "huuugeblob",
   "aud": "kube-apiserver",
   "exp": 1723781486,
@@ -311,13 +327,13 @@ You got a token with the following claims:
 
 Run the following command:
 
-	kubectl create clusterrolebinding oidc-cluster-admin --clusterrole=cluster-admin --user='https://authentik.local.example.com/application/o/kube-apiserver/#huuugeblob'
+	kubectl create clusterrolebinding oidc-cluster-admin --clusterrole=cluster-admin --user='https://authentik.example.com/application/o/kube-apiserver/#huuugeblob'
 
 ## 4. Set up the Kubernetes API server
 
 Add the following options to the kube-apiserver:
 
-	--oidc-issuer-url=https://authentik.local.example.com/application/o/kube-apiserver/
+	--oidc-issuer-url=https://authentik.example.com/application/o/kube-apiserver/
 	--oidc-client-id=kube-apiserver
 
 ## 5. Set up the kubeconfig
@@ -329,7 +345,7 @@ Run the following command:
 	  --exec-command=kubectl \
 	  --exec-arg=oidc-login \
 	  --exec-arg=get-token \
-	  --exec-arg=--oidc-issuer-url=https://authentik.local.example.com/application/o/kube-apiserver/ \
+	  --exec-arg=--oidc-issuer-url=https://authentik.example.com/application/o/kube-apiserver/ \
 	  --exec-arg=--oidc-client-id=kube-apiserver \
 	  --exec-arg=--oidc-client-secret=GETFROMAUTHENTIK \
 	  --exec-arg=--oidc-extra-scope=profile \
@@ -394,7 +410,7 @@ thaynes@kubem01:/etc/rancher/k3s$       sudo kubectl config set-credentials oidc
           --exec-command=kubectl \
           --exec-arg=oidc-login \
           --exec-arg=get-token \
-          --exec-arg=--oidc-issuer-url=https://authentik.local.example.com/application/o/kube-apiserver/ \
+          --exec-arg=--oidc-issuer-url=https://authentik.example.com/application/o/kube-apiserver/ \
           --exec-arg=--oidc-client-id=kube-apiserver \
           --exec-arg=--oidc-client-secret=REDACTED \
           --exec-arg=--oidc-extra-scope=profile \

@@ -268,7 +268,7 @@ Later I learned that some extra configs were needed. These can be added when cre
 ```yaml
 write-kubeconfig-mode: "0644"
 kube-apiserver-arg:
-  - "oidc-issuer-url=https://authentik.local.example.com/application/o/kube-apiserver/"
+  - "oidc-issuer-url=https://authentik.example.com/application/o/kube-apiserver/"
   - "oidc-client-id=kube-apiserver"
   - "oidc-username-claim=email"
   - "oidc-groups-claim=groups"

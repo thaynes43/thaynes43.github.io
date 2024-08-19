@@ -5,6 +5,7 @@
         "Authentik",
         "Barebone",
         "baremetal",
+        "becuase",
         "ccleaner",
         "ceph",
         "cheatsheets",
@@ -14,6 +15,7 @@
         "fullscreen",
         "Gbps",
         "goopy",
+        "guarentee",
         "Hackin",
         "hackintosh",
         "Hayneslab",
@@ -23,6 +25,7 @@
         "ifreload",
         "Kustomization",
         "kustomizations",
+        "loadbalancer",
         "Minisforum",
         "Monoprice",
         "mosquitto",
@@ -40,6 +43,7 @@
         "traefik",
         "Ugreen",
         "unifi",
+        "velero",
         "waydroid"
     ]
 }

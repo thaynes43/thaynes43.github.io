@@ -99,6 +99,10 @@ adventuresnav:
         url: /docs/funky-flux/authentication/
       - title: Kubernetes Dashboard
         url: /docs/funky-flux/kube-dashboard/
+      - title: Open WebUI
+        url: /docs/funky-flux/open-webui/
+      - title: Invidious
+        url: /docs/funky-flux/invidious/
 
 sheetsnav:
   - title: Cheat Sheets
