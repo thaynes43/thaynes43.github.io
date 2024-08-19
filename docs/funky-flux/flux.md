@@ -20,3 +20,7 @@ flux reconcile source git flux-system
 flux reconcile helmrelease -n <namespace> <name of helmrelease>
 flux reconcile kustomization <name of kustomization>
 ```
+
+## The Funk Master's Charts
+
+I found funkypenguin's charts [here](https://artifacthub.io/packages/search?repo=geek-cookbook&sort=relevance&page=1) which were suprisingly not referenced or used in any cookbooks on that site making me wonder what is up next. A lot of things I'm looking for already exist here! Some seem to come from [k8s at home](https://github.com/k8s-at-home) which is unfortunately archived.

@@ -26,6 +26,13 @@ The rest of this page is things I may or may not take on but don't want to lose 
 * Get IoT Started
 * Migrate media management & download clients
 
+### HAOS
+
+* Get SSO working with HAOS too
+* IngressRoute for HAOS-PVE so we can hit it from the web
+* Database we can backup and migrate data from the unRAID VM into?
+* This list is endless
+
 #### Lens
 
 See [lens](https://docs.k8slens.dev/) later...

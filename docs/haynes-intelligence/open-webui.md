@@ -1,6 +1,6 @@
 ---
 title: Open WebUI
-permalink: /docs/funky-flux/open-webui/
+permalink: /docs/haynes-intelligence/open-webui/
 ---
 
 Open WebUI was previously running as a beater deployment I could test before rebuilding the cluster. Now we are going to do it right, but still beat on it because I have no tested restoring from S3 yet.
@@ -177,14 +177,14 @@ systemctl daemon-reload
 systemctl restart ollama
 ```
 
-Now try "http://pop01.haynesnetwork:11434" and boom!
+Now try "http://pop01.example:11434" and boom!
 
 ```
-thaynes@kubem01:~$ curl http://pop01.haynesnetwork:11434
+thaynes@kubem01:~$ curl http://pop01.example:11434
 Ollama is running
 ```
 
-Now to see if updating the helm values to `ollamaUrls: [http://pop01.haynesnetwork:11434]` gets us going. But still, a blank page. Setting `replicaCount: 1` fixed it for now but I'd like to be able to use replicas. Might be something in the official [docs](https://docs.openwebui.com/getting-started/env-configuration/).
+Now to see if updating the helm values to `ollamaUrls: [http://pop01.example:11434]` gets us going. But still, a blank page. Setting `replicaCount: 1` fixed it for now but I'd like to be able to use replicas. Might be something in the official [docs](https://docs.openwebui.com/getting-started/env-configuration/).
 
 ### Reverse Proxy
 

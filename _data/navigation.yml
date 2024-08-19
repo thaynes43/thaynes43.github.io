@@ -100,7 +100,7 @@ adventuresnav:
       - title: Kubernetes Dashboard
         url: /docs/funky-flux/kube-dashboard/
       - title: Open WebUI
-        url: /docs/funky-flux/open-webui/
+        url: /docs/haynes-intelligence/open-webui/
       - title: Invidious
         url: /docs/funky-flux/invidious/
 

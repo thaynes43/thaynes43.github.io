@@ -89,7 +89,7 @@ I mostly followed the guide but plugged in `2024.6.x` for the chart since these 
         persistence:
           enabled: true
           accessModes:
-            - ReadWriteOnce   
+            - ReadWriteOnce
           storageClass: ceph-rbd 
 ```
 
@@ -106,7 +106,7 @@ I mostly followed the guide but plugged in `2024.6.x` for the chart since these 
         persistence:
           enabled: true
           accessModes:
-            - ReadWriteOnce   
+            - ReadWriteOnce
           storageClass: ceph-rbd 
 ```
 

@@ -115,6 +115,16 @@ kubectl delete -f <manifest.yaml>
 kubectl delete pvc --all
 ```
 
+#### delete pv
+
+```
+kubectl patch pvc -n namespace PVCNAME -p '{"metadata": {"finalizers": null}}'
+kubectl patch pv PVNAME -p '{"metadata": {"finalizers": null}}'
+
+k delete pvc PVCNAME --grace-period=0 --force
+k delete pv PVNAME --grace-period=0 --force
+```
+
 ### kubectl describe
 
 Describe things in the cluster like pods and pvc's. This will give you some basic info to troubleshoot with before going to the logs (or if the logs are gone because the thing is crash looping.
