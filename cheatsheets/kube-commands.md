@@ -152,7 +152,14 @@ kubectl logs <podname>
 Like bashing into a docker container but for a pod. Note if you are not kubens'd into the namespace you will need `-n <namespace>`
 
 ```
-kubectl exec -it <pod_name> -- env
+kubectl exec -it -n <namespace> <pod_name> -- env
+```
+
+Bash in:
+
+```bash
+k exec -it -n <namespace>  <pod_name> -- sh
+k exec -it  -n <namespace>  <pod_name> -- /bin/bash
 ```
 
 ### See what capabilities you have

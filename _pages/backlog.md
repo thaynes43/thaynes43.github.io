@@ -14,6 +14,15 @@ First I should really
 
 The rest of this page is things I may or may not take on but don't want to lose track of. 
 
+### Helm
+
+* Check out [homelab charts](https://github.com/k8s-home-lab/helm-charts) inspired by [k8s at home](https://k8s-at-home.com/) that I missed out on!
+* Make my own chart for Cloudflare-DDNS (see ![my doc]({{ site.url }}/docs/cloudflare-ddns/))
+* Make my own chart for something that has no chart
+* See what [Helmfile](https://helmfile.readthedocs.io/en/latest/) is (and figure out what template they used for pages!)
+* Check out this [sweet repo](https://github.com/onedr0p/home-ops/tree/main) for what I guess they are calling HomeOps
+* Explore [TrueCharts](https://truecharts.org/) cause it has a shit ton but some terrible ads, but [this is better](https://github.com/truecharts/charts/tree/master/charts/stables)
+
 ### Kube
 
 * See what [kubevip](https://kube-vip.io/docs/installation/) is all about!
