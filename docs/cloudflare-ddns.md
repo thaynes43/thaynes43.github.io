@@ -11,3 +11,5 @@ For now...
 
 > **TODO** Placeholder for when I want to migrate this over
 
+True chart uses [this image](https://hotio.dev/containers/cloudflareddns/) which we could use env vars for secrets.
+
