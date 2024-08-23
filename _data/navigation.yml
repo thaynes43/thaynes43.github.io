@@ -31,6 +31,8 @@ homenav:
     children:
       - title: The Lab
         url: /lab-overview/
+      - title: Tutorials
+        url: /tutorials/tutorials-index/
       - title: Adventures
         url: /docs/adventures-index/
       - title: Hardware
@@ -61,6 +63,7 @@ hardwarenav:
 
 tutorialsnav:
   - title: Tutorials
+    url: /tutorials/tutorials-index/
     children:
       - title: Authentik Proxy Provider
         url: /tutorials/authentik-proxy-provider/
