@@ -123,6 +123,15 @@ defaults:
       comments: true
       share: false
       related: true
+  # tutorials
+  - scope:
+      path: tutorials
+      type: pages
+    values:
+      layout: single
+      toc: true
+      sidebar:
+        nav: tutorialsnav
   # docs
   - scope:
       path: docs

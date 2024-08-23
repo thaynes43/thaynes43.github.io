@@ -57,6 +57,12 @@ hardwarenav:
       - title: Haynes Intelligence
         url: /hardware/haynesintelligence/
 
+tutorialsnav:
+  - title: Tutorials
+    children:
+      - title: Authentik Proxy Provider
+        url: /tutorials/authentik-proxy-provider/
+
 adventuresnav:
   - title: Adventures
     url: /docs/adventures-index/
@@ -122,4 +128,4 @@ benchmarksnav:
       - title: Disk Speed
         url: /benchmarks/disk-speed/
       - title: Hades
-        url: /benchmarks/hades/     
+        url: /benchmarks/hades/

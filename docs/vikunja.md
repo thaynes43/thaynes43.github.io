@@ -317,7 +317,7 @@ cat vikunja-auth-secret.yaml | kubeseal --controller-name=sealed-secrets --contr
 
 #### Auth Values
 
-> **TODO** I couldn't figure out how to pipe these as secrets since they can't be set to environment variables.
+> **TODO** I couldn't figure out how to pipe these as secrets since they can't be set to environment variables. [Here](https://community.vikunja.io/t/configure-openid-via-environment/628/13) is a post where people complain about it.
 
 ```yaml
       auth:
@@ -334,6 +334,74 @@ cat vikunja-auth-secret.yaml | kubeseal --controller-name=sealed-secrets --contr
 ```
 
 I missed some [authentik doc](https://docs.goauthentik.io/integrations/services/vikunja/) on how to set this shit up. They reminded me I missed Cloudflare to sign the tokens but the rest were misleading. The [vijunka](https://vikunja.io/docs/openid-example-configurations#authentik) ones were better but still off a bit, you don't need `redirecturl` cause it figures it out on it's own.
+
+## Moving to Secrets
+
+> **WARNING** You can't with this chart. At least not that I've found. This is just me trying and at least learning how to set env vars w/ truecharts.
+
+Next I am trying to pass secrets for the openid secret but the only way I see this is possible is via environment variables. Few tries yields:
+
+```
+  Warning  UpgradeFailed  43s  helm-controller  Helm upgrade failed for release vikunja/vikunja with chart vikunja@15.2.8: template: vikunja/templates/common.yaml:8:3: executing "vikunja/templates/common.yaml" at <include "tc.v1.common.loader.apply" .>: error calling include: template: vikunja/charts/common/templates/loader/_apply.tpl:32:6: executing "tc.v1.common.loader.apply" at <include "tc.v1.common.spawner.workload" .>: error calling include: template: vikunja/charts/common/templates/spawner/_workload.tpl:49:12: executing "tc.v1.common.spawner.workload" at <include "tc.v1.common.class.deployment" (dict "rootCtx" $ "objectData" $objectData)>: error calling include: template: vikunja/charts/common/templates/class/_deployment.tpl:53:10: executing "tc.v1.common.class.deployment" at <include "tc.v1.common.lib.workload.pod" (dict "rootCtx" $rootCtx "objectData" $objectData)>: error calling include: template: vikunja/charts/common/templates/lib/workload/_pod.tpl:57:8: executing "tc.v1.common.lib.workload.pod" at <include "tc.v1.common.lib.pod.containerSpawner" (dict "rootCtx" $rootCtx "objectData" $objectData)>: error calling include: template: vikunja/charts/common/templates/lib/pod/_containerSpawner.tpl:33:10: executing "tc.v1.common.lib.pod.containerSpawner" at <include "tc.v1.common.lib.pod.container" (dict "rootCtx" $rootCtx "objectData" $container)>: error calling include: template: vikunja/charts/common/templates/lib/pod/_container.tpl:59:8: executing "tc.v1.common.lib.pod.container" at <include "tc.v1.common.lib.container.env" (dict "rootCtx" $rootCtx "objectData" $objectData)>: error calling include: template: vikunja/charts/common/templates/lib/container/_env.tpl:12:8: executing "tc.v1.common.lib.container.env" at <include "tc.v1.common.helper.container.envDupeCheck" (dict "rootCtx" $rootCtx "objectData" $objectData "source" "env" "key" $k)>: error calling include: template: vikunja/charts/common/templates/helpers/_envDupeCheck.tpl:15:43: executing "tc.v1.common.helper.container.envDupeCheck" at <$key>: wrong type for value; expected string; got int
+```
+
+But [TrueCharts env docs](https://truecharts.org/common/container/env/) point to my formatting being off where `key` is set.
+
+Now this works:
+
+```yaml
+    workload:
+      main:
+        podSpec:
+          containers:
+            frontend:
+              env:
+                VIKUNJA_SERVICE_MOTD: "TEST ENV SET IN CHART"
+```
+
+But maybe not the right container because the motd is still wrong:
+
+```
+thaynes@kubem01:~/workspace/secret-sealing$ k exec -it -n vikunja pod/vikunja-54bf6d85-gzstd -- env
+Defaulted container "vikunja-frontend" out of: vikunja-frontend, vikunja, vikunja-proxy, vikunja-system-cnpg-wait (init), vikunja-system-redis-wait (init)
+VIKUNJA_SERVICE_MOTD=TEST ENV SET IN CHART
+```
+
+Not sure how to pick the container I `exec` in but google says `--container or -c`.
+
+```
+k exec -it -n vikunja pod/vikunja-58d5794fdd-fgs4n -c vikunja -- env
+VIKUNJA_SERVICE_MOTD=TEST ENV SET IN CHART
+```
+
+Looks good!
+
+![vikunja-env-works]({{ site.url }}/images/web/vikunja-env-works.png)
+
+Now to try the secrets:
+
+```yaml
+    workload:
+      main:
+        podSpec:
+          containers:
+            main:
+              env:
+                VIKUNJA_AUTH_OPENID_CLIENTID:
+                  secretKeyRef:
+                    name: vikunja-provider-credentials
+                    key: id
+                VIKUNJA_AUTH_OPENID_CLIENTSECRET:
+                  secretKeyRef:
+                    name: vikunja-provider-credentials
+                    key: secret
+```
+
+But no dice
+
+```
+  Warning  UpgradeFailed  67s  helm-controller  Helm upgrade failed for release vikunja/vikunja with chart vikunja@15.2.8: execution error at (vikunja/templates/common.yaml:8:3): Container - Expected in [env] the referenced Secret [vikunja-provider-credentials] to be defined
+```
 
 ## Values Reference 
 
