@@ -1,6 +1,8 @@
 main:
   - title: The Lab
     url: /lab-overview/
+  - title: Tutorials
+    url: /tutorials/tutorials-index/
   - title: Adventures
     url: /docs/adventures-index/
   - title: Hardware
