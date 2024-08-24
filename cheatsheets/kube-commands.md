@@ -162,6 +162,14 @@ k exec -it -n <namespace>  <pod_name> -- sh
 k exec -it  -n <namespace>  <pod_name> -- /bin/bash
 ```
 
+### Restart
+
+```
+https://kubernetes.io/docs/reference/kubectl/generated/kubectl_rollout/kubectl_rollout_restart/
+
+k rollout restart deployment/prowlarr -n media-management
+```
+
 ### See what capabilities you have
 
 This will show resources. Here we are checking to see if the cluster can make volumesnapshots or at least is eligible to be setup for volumesnapshots.

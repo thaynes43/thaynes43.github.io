@@ -110,24 +110,26 @@ spec:
 I have older values I was using in Kubernetes before I switched to `flux`. It's mostly what I need except I don't use `NodePort` now that I have a loadbalancer. You may want to run Ollama with the UI but since I don't have GPUs in this cluster there's no way it'll perform well without the beefy server as it's Ollama instance.
 
 ```yaml
+  values: # found here https://github.com/open-webui/helm-charts/blob/main/charts/open-webui/values.yaml
     # -- Automatically install Ollama Helm chart from https://otwld.github.io/ollama-helm/. Use [Helm Values](https://github.com/otwld/ollama-helm/#helm-values) to configure
     ollama:
       enabled: false
 
     # -- A list of Ollama API endpoints. These can be added in lieu of automatically installing the Ollama Helm chart, or in addition to it.
-    ollamaUrls: [http://pop01]
+    ollamaUrls: [http://pop01.haynesnetwork:11434] # TODO traefik this 
 
     # If > 1 use cephfs w/ ReadWriteMany
-    replicaCount: 3
+    # TODO Keep at 1, seems to be a lot of problems with replication at the moment
+    replicaCount: 1
 
     persistence:
       enabled: true
       size: 2Gi
       # -- Use existingClaim if you want to re-use an existing Open WebUI PVC instead of creating a new one
       existingClaim: ""
-     # -- If using multiple replicas, you must update accessModes to ReadWriteMany - ReadWriteOnce is default.
+      # -- If using multiple replicas, you must update accessModes to ReadWriteMany - ReadWriteOnce is default.
       accessModes:
-          - ReadWriteMany
+        - ReadWriteMany
       storageClass: cephfs
       selector: {}
       annotations: {}
@@ -135,6 +137,41 @@ I have older values I was using in Kubernetes before I switched to `flux`. It's 
     # -- Service values to expose Open WebUI pods to cluster
     service:
       type: LoadBalancer
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: 192.168.40.103
+      #loadBalancerIP: 192.168.40.103 # Can't do this and metallb.universe.tf/loadBalancerIPs
+
+    extraEnvVars:
+      # -- Default API key value for Pipelines. Should be updated in a production deployment, or be changed to the required API key if not using Pipelines
+      - name: GLOBAL_LOG_LEVEL
+        value: "DEBUG" # TODO set to "INFO" once stable
+      - name: OPENAI_API_BASE_URLS
+        value: "http://open-webui-pipelines.haynes-intelligence.svc.cluster.local:9099;https://api.openai.com/v1"
+      - name: OPENAI_API_KEYS
+        valueFrom:
+          secretKeyRef:
+            name: openai-open-webui-api-key
+            key: apikeys
+      - name: OPENID_PROVIDER_URL
+        value: "https://authentik.haynesnetwork.com/application/o/open-webui/.well-known/openid-configuration"
+      - name: OAUTH_CLIENT_ID
+        valueFrom:
+          secretKeyRef:
+            name: open-webui-provider-credentials
+            key: id
+      - name: OAUTH_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: open-webui-provider-credentials
+            key: secret
+      - name: OAUTH_PROVIDER_NAME
+        value: "authentik"
+      - name: ENABLE_OAUTH_SIGNUP
+        value: "true"
+      - name: ENABLE_LOGIN_FORM
+        value: "false"
+      - name: DEFAULT_USER_ROLE
+        value: "user"
 ```
 
 I decided to use this opportunity to test a `cephfs` filesystem since what I have now are database / caches that are 1:1 with the pod using them. This UI allows me to specify replicates for the service that will all hit the same volume which I have not tested before.

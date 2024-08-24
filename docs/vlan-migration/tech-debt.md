@@ -102,7 +102,33 @@ Critical functions and new VMs have been switched over but many are offline and 
 | pbs | 192.168.40.91 | y |
 | Tower11VM | 192.168.40.92 | y |
 
-### Rearranged some stuff in flux-repo
+#### MetalLB Annotations Wrong
+
+I realized I was using the [MetalLB annotation](https://metallb.universe.tf/usage/#requesting-specific-ips) wrong where I put it under the helm release instead of the service. `loadBalancerIP` itself was working but is sketchy and [deprecated](https://github.com/kubernetes/kubernetes/pull/107235)
+
+1. Annotate the services instead of the HelmReleases
+1. Audit to see where `loadBalancerIP` is set and switch to only use the annotation
+1. Just use ClusterIP for `vikunja` which will require the `truechart` for now since it's so complex
+
+| Service | IP | LoadBalancerIP | Annotated | Doc | Verified |
+| Traefik | 192.168.40.100 | no | yes | yes | yes |
+| podinfo | 192.168.40.101 | no | yes | N/A | yes |
+| Authentik | 192.168.40.102 | no | yes | yes | yes |
+| open-webui | 192.168.40.103 | no | yes | yes | yes |
+| mosquitto | 192.168.40.104 | fix! | fix! | N/A |
+| zigbee2mqtt | 192.168.40.105 | N/A | yes | yes | yes |
+| zwave-js-ui | 192.168.40.106 | no | yes | yes | yes |
+| vikunja-redis | 192.168.40.107 | N/A | yes | yes |
+| vikunja | 192.168.40.108 | N/A | yes | yes | yes |
+| prowlarr | 192.168.40.109 | N/A | yes | yes | yes |
+| radarr | 192.168.40.110 | N/A | yes | yes | yes |
+| sabnzb-default | 192.168.40.111 | N/A | yes | yes | yes |
+| sabnzb-mediarequests | 192.168.40.112 | N/A | yes |  yes | yes |
+| sonarr | 192.168.40.112 | N/A | yes | yes | yes |
+
+> **TODO** mosquitto gives no way to specify the IP. I can use a ClusterIP here and an IngressRoute to expose it to upstream dependencies. I can also use "http://mosquitto.iot-services.svc.cluster.local:9001" for in cluster routes.
+
+[This post](https://www.reddit.com/r/kubernetes/comments/y916zw/kubernetesmetallb_are_assigned_loadbalancer_ip/) says you'll never lose an IP for a service which means I only screwed myself because I relocated, and therefore recreated, two services which snagged different IPs and conflicted with what I set prowlarr. However, still good to work out the annotation.
 
 #### external-dns Dependency Problem
 

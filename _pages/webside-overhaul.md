@@ -22,3 +22,7 @@ Comments on the articles will be critical. They go out of data and people can he
 - Lot more hardware to add 
 - Didn't document any unRAID stuff which could be popular
 - Didn't document any UniFi stuff, also popular
+
+## Material for MkDocs
+
+Sometime in the near future I am going to migrate all this noise to [material for MkDocs](https://squidfunk.github.io/mkdocs-material/) which seems to have more of what I am looking for.

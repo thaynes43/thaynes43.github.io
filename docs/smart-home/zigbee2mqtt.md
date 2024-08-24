@@ -87,8 +87,6 @@ kind: HelmRelease
 metadata:
   name: zigbee2mqtt
   namespace: iot-services
-  annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.40.105
 spec:
   chart:
     spec:
@@ -105,10 +103,10 @@ spec:
     image:
       tag: "1.39.1" # https://github.com/Koenkk/zigbee2mqtt/releases/
     service:
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: 192.168.40.105
       type: LoadBalancer
       port: 8080
-      spec:
-        loadBalancerIP: 192.168.40.105
     statefulset:
       storage:
         enabled: true

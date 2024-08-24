@@ -121,10 +121,10 @@ Finally, I will change the `HelmRelease` for traefik to grab one of these IPs:
     service:
       enabled: true
       type: LoadBalancer
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: 192.168.40.100
       annotations: {}
       labels: {}
-      spec:
-        loadBalancerIP: 192.168.40.60
       loadBalancerSourceRanges: []
       externalIPs: []
 ```

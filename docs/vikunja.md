@@ -69,8 +69,6 @@ kind: HelmRelease
 metadata:
   name: vikunja
   namespace: haynes-intelligence
-  annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.40.107
 spec:
   chart:
     spec:
@@ -87,6 +85,8 @@ spec:
     # Vikunja defaults found here https://github.com/truecharts/charts/blob/master/charts/stable/vikunja/values.yaml
     # Common defaults found here https://github.com/truecharts/library-charts/blob/main/library/common/values.yaml
     global:
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: "192.168.40.107,192.168.40.108"
       fallbackDefaults:
         serviceType: LoadBalancer
         storageClass: ceph-rbd

@@ -66,8 +66,6 @@ kind: HelmRelease
 metadata:
   name: zwave-js-ui
   namespace: iot-services
-  annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.40.106
 spec:
   chart:
     spec:
@@ -85,7 +83,8 @@ spec:
       tag: "9.17.0" # https://github.com/zwave-js/zwave-js-ui/releases
     service:
       type: LoadBalancer
-      loadBalancerIP: 192.168.40.106
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: 192.168.40.106
     persistence:
       enabled: true
       size: 2Gi

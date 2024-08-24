@@ -90,9 +90,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   name: sonarr
-  namespace: sonarr
-  annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.40.109
+  namespace: media-management
 spec:
   chart:
     spec:
@@ -108,6 +106,8 @@ spec:
     # Sonarr defaults found here https://github.com/truecharts/charts/blob/master/charts/stable/sonarr/values.yaml
     # Common defaults found here https://github.com/truecharts/library-charts/blob/main/library/common/values.yaml
     global:
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: 192.168.40.113    
       fallbackDefaults:
         serviceType: LoadBalancer
         storageClass: cephfs # exporter and sonarr both access the volumes
@@ -124,6 +124,57 @@ spec:
             main:
               env:
                 SONARR__AUTHENTICATION_METHOD: "External"
+```
+
+### App-Template HelmRelease
+
+Gonna move this one away from truecharts now.
+
+```yaml
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: sonarr
+  namespace: media-management
+spec:
+  chart:
+    spec:
+      chart: app-template
+      version: 3.3.2 # https://github.com/bjw-s/helm-charts/tree/main/charts/other/app-template
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  interval: 15m
+  timeout: 5m
+  values:
+    # Common https://github.com/bjw-s/helm-charts/blob/main/charts/library/common/values.yaml
+    controllers:
+      sonarr:
+        containers:
+          app:
+            image:
+              repository: lscr.io/linuxserver/sonarr # https://fleet.linuxserver.io/image?name=linuxserver/sonarr
+              tag: 4.0.8
+              pullPolicy: IfNotPresent
+    service:
+      app:
+        controller: sonarr
+        type: LoadBalancer
+        annotations:
+          metallb.universe.tf/loadBalancerIPs: 192.168.40.113
+        ports:
+          http:
+            port: 8989
+    persistence:
+      config:
+        type: persistentVolumeClaim
+        storageClass: ceph-rbd
+        accessMode: ReadWriteOnce
+        size: 15Gi
+        globalMounts:
+          - path: /config
+            readOnly: false
 ```
 
 ## Let it Rip!
