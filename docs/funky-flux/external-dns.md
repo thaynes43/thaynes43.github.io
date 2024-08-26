@@ -92,3 +92,5 @@ All systems nominal!
 ## Unifi Webhook
 
 TODO https://github.com/kashalls/external-dns-unifi-webhook but first I gotta fix the shit hole of the other one
+
+[Here](https://github.com/onedr0p/home-ops/tree/main/kubernetes/main/apps/network/external-dns) is an example of how somebody got this up and running with flux already!

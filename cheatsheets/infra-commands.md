@@ -108,7 +108,7 @@ zpool clear tank ata-ST20000NM004E-3HR103_ZX2119KV
 
 These happen when I reboot.
 
-```
+```bash
 ceph crash archive-all
 ```
 
@@ -118,15 +118,34 @@ ceph crash archive-all
 
 Overall status of the cluster.
 
-```
+```bash
 ceph status || ceph -w
 ```
 
+#### Config
+
+```bash
+ceph config dump
+```
 #### Monitors
 
 Get details about the monitors.
 
-```
+```bash
 ceph mon dump
 ```
 
+### Ceph Services
+
+#### See Services
+
+```bash
+ceph mgr services
+```
+
+#### Restart Service
+
+```bash
+ceph mgr module disable dashboard
+ceph mgr module enable dashboard
+```

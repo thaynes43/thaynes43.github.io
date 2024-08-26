@@ -25,3 +25,5 @@ But it got weird so I switched to:
 watch -n 1 flux get kustomizations
 watch --interval 1 --no-wrap flux get kustomizations
 ```
+
+But `no-wrap` cuts off a ton of stuff!

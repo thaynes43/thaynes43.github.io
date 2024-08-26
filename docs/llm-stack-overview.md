@@ -48,7 +48,17 @@ Add:
 
 ```
 [Service]
-Environment="OLLAMA_MODELS=//nas01/Data/ollama/models"
+Environment="OLLAMA_MODELS=//nas01/Data/LLM/Ollama"
+```
+
+Or here `/mnt/nas01-data/LLM/Ollama`.
+
+Now we have 
+
+```yaml
+[Service]
+Environment="OLLAMA_HOST=0.0.0.0"
+Enviromnent="OLLAMA_MODELS=/mnt/nas01-data/LLM/Ollama"
 ```
 
 Delete the models from the current spot or just move them 
@@ -61,6 +71,67 @@ Restart:
 systemctl daemon-reload
 systemctl start ollama.service or systemctl restart ollama
 ```
+
+Broken due to resolv
+
+```
+thaynes@pop01:/etc/netplan$ ls -l /etc/resolv.conf
+lrwxrwxrwx 1 root root 39 Jun 23 23:19 /etc/resolv.conf -> ../run/systemd/resolve/stub-resolv.conf
+thaynes@pop01:/etc/netplan$ sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+thaynes@pop01:/etc/netplan$ ls -l /etc/resolv.conf
+lrwxrwxrwx 1 root root 32 Aug 24 18:47 /etc/resolv.conf -> /run/systemd/resolve/resolv.conf
+```
+
+```bash
+# This is /run/systemd/resolve/stub-resolv.conf managed by man:systemd-resolved(8).
+# Do not edit.
+#
+# This file might be symlinked as /etc/resolv.conf. If you're looking at
+# /etc/resolv.conf and seeing this text, you have followed the symlink.
+#
+# This is a dynamic resolv.conf file for connecting local clients to the
+# internal DNS stub resolver of systemd-resolved. This file lists all
+# configured search domains.
+#
+# Run "resolvectl status" to see details about the uplink DNS servers
+# currently in use.
+#
+# Third party programs should typically not access this file directly, but only
+# through the symlink at /etc/resolv.conf. To manage man:resolv.conf(5) in a
+# different way, replace this symlink by a static file or a different symlink.
+#
+# See man:systemd-resolved.service(8) for details about the supported modes of
+# operation for /etc/resolv.conf.
+
+nameserver 127.0.0.53
+options edns0 trust-ad
+search .
+```
+
+sudo ln -sf /home/thaynes/fakeresolv.conf /etc/resolv.conf
+
+sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+
+Now the problem is Ollama can't use the mount, maybe can be added to the group?
+
+`sudo usermod -aG thaynes ollama`
+`sudo mount -v -t cifs -o credentials=/home/thaynes/.credentials,uid=1000,gid=1000 //nas01/Data /mnt/nas01-data`
+
+`nas01group:x:1004:thaynes,ollama,root`
+`sudo mount -v -t cifs -o credentials=/home/thaynes/.credentials,uid=999,gid=1004 //nas01/Data /mnt/nas01-data`
+
+`sudo mount -v -t cifs -o credentials=/home/thaynes/.credentials,uid=999,gid=1004,file_mode=0664,dir_mode=0775 //nas01/Data /mnt/nas01-data`
+
+Now NOTHING can resolve!
+
+```
+thaynes@pop01:/mnt$ ollama run llama3.1
+pulling manifest 
+Error: pull model manifest: Get "https://registry.ollama.ai/v2/library/llama3.1/manifests/latest": dial tcp: lookup registry.ollama.ai on 127.0.0.53:53: server misbehaving
+```
+
+But editing that file, which will change when we reboot so we must figure it out, got me going
+
 
 ## Open-WebUI
 

@@ -164,3 +164,29 @@ CHANGING THE IP
 
 [This post](https://forum.proxmox.com/threads/change-public-network-and-or-cluster-network-in-ceph.92581/) makes it sound pretty easy but [here](https://forum.proxmox.com/threads/not-able-to-use-pveceph-purge-to-completely-remove-ceph.59606/#post-274958) someone had to delete mons to get it to work which I think is the right way to do it.
 
+### Fix Ceph Dashboard
+
+The dashboard randomly decided to throw an error. It's mgrs are still looking at the wrong spot! This [official doc](https://access.redhat.com/solutions/5215611) seems clear.
+
+```bash
+root@pve03:~# ceph config dump
+WHO     MASK  LEVEL     OPTION                                 VALUE          RO
+mon           advanced  auth_allow_insecure_global_id_reclaim  false            
+mgr           advanced  mgr/dashboard/pve01/server_addr        192.168.0.34   * 
+mgr           advanced  mgr/dashboard/pve02/server_addr        192.168.0.62   * 
+mgr           advanced  mgr/dashboard/pve03/server_addr        192.168.0.175  * 
+```
+
+```bash
+ceph config rm mgr mgr/dashboard/pve01/server_addr
+ceph config rm mgr mgr/dashboard/pve02/server_addr
+ceph config rm mgr mgr/dashboard/pve03/server_addr
+```
+
+```bash
+ceph config set mgr mgr/dashboard/pve01/server_addr 192.168.40.6
+ceph config set mgr mgr/dashboard/pve02/server_addr 192.168.40.7
+ceph config set mgr mgr/dashboard/pve03/server_addr 192.168.40.8
+ceph config set mgr mgr/dashboard/pve04/server_addr 192.168.40.9
+ceph config set mgr mgr/dashboard/pve05/server_addr 192.168.40.10
+```

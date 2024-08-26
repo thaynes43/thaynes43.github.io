@@ -60,6 +60,97 @@ Then refresh with `ifdown eth0; ifup eth0`
 
 > **NOTE** Next time check if anyone is using the designated IP (looking at you Tower11). And SHUT EVERY VM DOWN OH MY GOD!
 
+###### pre-filet01 & pve-filet02
+
+These guys don't have the VPNLan setup yet as a secondary door to pve's dashboard but they do have three NICs so that's not bad.
+
+When I initially set up the other VPNLan DNS entries I used a `-25` suffix to distinguish them but I think `-vpn` makes more sense. In this case the fitlet3's have 3 1Gbe NICs.
+
+I will name the bridge `vmbr2` so it matches the other VPNLan bridges, for HA, but am skipping `vmbr1` for these (and for `HaynesIntelligence` which I had to go back and fix).
+
+* https://pve-filet01-vpn.example:8006/
+* https://pve-filet02-vpn.example:8006/
+
+Now we need to move the hosts to:
+
+| Node | IP |
+| filet01-pve | 192.168.40.12 |
+| filet02-pve | 192.168.40.13 |
+
+###### Adjusted Plan
+
+1. Bring down all the VMs that went crazy last time
+1. Roll out `/etc/pve/corosync.conf` changes with the anticipated IP, `192.168.40.13`, new version number, and restart it `systemctl restart corosync`. You will now be alone as a node.
+1. Edit `/etc/hosts` and `/etc/resolv.conf`, change DNS and interfaces to `192.168.40.13` and THEN add VLAN for port of switch
+1. `ifdown vmbr0; ifup vmbr0` for good measure
+1. On node run `systemctl restart corosync` and `systemctl restart pve-cluster`
+1. On every other node that are in the cluster run `systemctl restart corosync` and check with `cat /etc/pve/.members`
+1. Reboot node
+
+
+Didn't go well, now there is no cluster. 
+```bash
+pvesh get /cluster/config/join --output-format json-pretty
+hostname lookup 'pve04' failed - failed to get address info for: pve04: Name or service not known
+```
+
+I thought it might be because I forgot to bump the corosync version. Ran this on HaynesIntelligence and everything BUT HaynesIntelligence came back green.
+
+```
+Stop the cluster services:
+systemctl stop pve-cluster
+systemctl stop corosync
+
+Force local mode to update the cluster configuration:
+pmxcfs -l
+```
+
+Rebooting HaynesIntelligence than got it back online.
+
+###### Last One Ever
+
+`pve-filet02` with `nut01` is all that's left. 
+
+1. Bring down all the VMs that went crazy last time
+1. Roll out `/etc/pve/corosync.conf` changes with the anticipated IP, `192.168.40.13`, new version number, and restart it `systemctl restart corosync`. You will now be alone as a node.
+1. Edit `/etc/hosts` and `/etc/resolv.conf`, change DNS and interfaces to `192.168.40.13` and THEN add VLAN for port of switch
+1. Reboot and verify in UniFi new IP was retrieved
+1. `systemctl restart corosync` once on filet01, observe that node showing up with the one we rebooted
+1. Do pve01, wat for it to join pve-filet02 - good
+1. Do HaynesIntelligence - now everything is frozen
+1. BOOT IT
+
+```bash
+root@HaynesIntelligence:~# systemctl stop pve-cluster
+root@HaynesIntelligence:~# systemctl stop corosync
+root@HaynesIntelligence:~# pmxcfs -l
+root@HaynesIntelligence:~# systemctl reboot
+```
+
+After booting HaynesIntelligence everything but pve04 became green. 
+
+Then the NUT:
+
+FIRST update DNS entry or it gets weird.
+
+```
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+        address 192.168.40.80/24
+        gateway 192.168.40.1
+```
+
+Reboot -> Now nut01 has this IP but `/etc/network/interfaces` is reverted.. good enough. Check USB to make sure mapping is good and do a victory lap!
+
+###### Bring VMs Back Online
+
+Still some work to do to get the VMs all up. First I can just boot up the ones on the correct subnet, this is mostly the k8s since I left the LXCs alone.
+
+After I still have a big list to sift through. 
+
 #### VMs & LXCs - 192.168.40.40-192.168.40.99
 
 Critical functions and new VMs have been switched over but many are offline and will need static IP configuration.
@@ -84,19 +175,18 @@ Critical functions and new VMs have been switched over but many are offline and 
 | WinGaming01 | 192.168.40.55 | n |
 | WinGaming02 | 192.168.40.56 | n |
 | ---- | Back to MS-01s | ---- |
-| android-x86 | 192.168.40.57 | n |
-| ubuntu01 | 192.168.40.58 | n |
-| mac01 | 192.168.40.59 | n |
-| mac02 | 192.168.40.60 | n |
-| windows11-01 | 192.168.40.61 | n |
-| windows11-02 | 192.168.40.62 | n |
-| windows11-03 | 192.168.40.63 | n |
-| WinGaming03 | 192.168.40.64 | n |
-| ubundroid | 192.168.40.65 | n |
-| waydroid01 | 192.168.40.66 | n |
-| haynesdroid | 192.168.40.67 | n |
-| ---- | ---Needs Host First--- | ---- |
-| nut01 | 192.168.40.68 | n |
+| ubuntu01 | 192.168.40.57 | n |
+| mac01 | 192.168.40.58 | y |
+| mac02 | 192.168.40.59 | y |
+| windows11-01 | 192.168.40.60 | n |
+| windows11-02 | 192.168.40.61 | n |
+| windows11-03 | 192.168.40.62 | n |
+| WinGaming03 | 192.168.40.63 | n |
+| ubundroid | 192.168.40.64 | n |
+| waydroid01 | 192.168.40.65 | n |
+| haynesdroid | 192.168.40.66 | n |
+| ---- | --- filet02 --- | ---- |
+| nut01 | 192.168.40.80 | y |
 | ---- | ---Not on Proxmox--- | ---- |
 | haos | 192.168.40.90 | y |
 | pbs | 192.168.40.91 | y |
@@ -209,7 +299,7 @@ First test I didn't change the host URL and it blew up.
 Next try was good, it just refused to add the `IngressRoute` because the service wasn't found:
 
 ```
-2024-08-13 23:51:16	2024-08-14T03:51:16Z ERR github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/kubernetes_http.go:102 > error="kubernetes service not found: traefik/haynestowerffffffffff" ingress=plex namespace=traefik providerName=kubernetescrd
+2024-08-13 23:51:16	2024-08-14T03:51:16Z ERR github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/kubernetes_http.go:102 > error="kubernetes service not found: traefik/haynestower" ingress=plex namespace=traefik providerName=kubernetescrd
 ```
 
 After pushing the fix the plex URL is back online!
