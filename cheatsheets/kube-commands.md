@@ -11,25 +11,25 @@ These are helper scripts that come from [here](https://github.com/ahmetb/kubectx
 
 ### Show available contexts (clusters)
 
-```
+```bash
 kubectx
 ```
 
 ### Switch cluster
 
-```
+```bash
 kubectx <cluster name>
 ```
 
 ### Show available namespaces
 
-```
+```bash
 kubens
 ```
 
 ### Switch namespaces
 
-```
+```bash
 kubens <namespace>
 ```
 
@@ -39,7 +39,7 @@ This is the beast that drives operations around your k8s cluster. Most of the he
 
 ### kubectl apply
 
-```
+```bash
 kubectl apply -f <filename.yaml>
 ```
 
@@ -49,19 +49,19 @@ To see what's running, installed, or anything else we use `kubectl get <thing>`
 
 #### get nodes
 
-```
+```bash
 kubectl get nodes
 ```
 
 #### get namespaces
 
-```
+```bash
 kubectl get namespaces
 ```
 
 #### get pods
 
-```
+```bash
 kubectl get pods --all-namespaces
 kubectl -n <namespace> kubget pods 
 ```
@@ -70,18 +70,18 @@ kubectl -n <namespace> kubget pods
 
 This is useful for figuring port mappings.
 
-```
+```bash
 kubectl get svc --all-namespaces
 ```
 
 #### get volumes
 
-```
+```bash
 kubectl get pv,pvc -o wide
 ```
 #### get volumesnapshots
 
-```
+```bash
 kubectl get volumesnapshot
 ```
 
@@ -89,7 +89,7 @@ kubectl get volumesnapshot
 
 This will show you what type of snapshots you can take.
 
-```
+```bash
 kubectl get volumesnapshotclass
 ```
 
@@ -97,7 +97,7 @@ kubectl get volumesnapshotclass
 
 Since I used rook this tells me how the ceph cluster exposed to k8s is doing.
 
-```
+```bash
 kubectl -n rook-ceph  get CephCluster
 ```
 
@@ -105,19 +105,19 @@ kubectl -n rook-ceph  get CephCluster
 
 #### delete manifest
 
-```
+```bash
 kubectl delete -f <manifest.yaml>
 ```
 
 #### delete all your volumes (don't do this!)
 
-```
+```bash
 kubectl delete pvc --all
 ```
 
 #### delete pv
 
-```
+```bash
 kubectl patch pvc -n namespace PVCNAME -p '{"metadata": {"finalizers": null}}'
 kubectl patch pv PVNAME -p '{"metadata": {"finalizers": null}}'
 
@@ -137,13 +137,13 @@ kubectl describe <type> <name>
 
 For an app:
 
-```
+```bash
 kubectl logs -n velero -l app.kubernetes.io/name=velero
 ```
 
 For a pod:
 
-```
+```bash
 kubectl logs <podname>
 ```
 
@@ -174,7 +174,7 @@ k rollout restart deployment/prowlarr -n media-management
 
 This will show resources. Here we are checking to see if the cluster can make volumesnapshots or at least is eligible to be setup for volumesnapshots.
 
-```
+```bash
 kubectl api-resources | grep volumesnapshots
 ```
 
@@ -182,16 +182,51 @@ kubectl api-resources | grep volumesnapshots
 
 ### Create Backup
 
-```
+```bash
 velero backup create hellothere --include-namespaces=default --wait
 ```
 
+```bash
+ velero backup create --from-schedule=velero-daily-backups
+ ```
+
 #### TODO FROM DEBUGGING NEEDS ORGANIZING
 
-```
+```bash
 kubectl get events -A
 ceph -s
 ceph osd lspools
 kubectl logs -f velero-764d58dfd9-k47sh
 ```
 
+## Mass Delete
+
+### Jobs
+
+```bash
+kubectl get pod  -n velero --field-selector=status.phase==Succeeded
+
+kubectl delete pod -n velero  --field-selector=status.phase==Succeeded
+
+kubectl delete pod -n velero  --field-selector=status.phase==Failed
+```
+
+```bash
+kubectl delete jobs -n velero --field-selector status.successful=1
+
+kubectl get jobs  -n velero --field-selector status.successful=1
+```
+
+Pass ``--all-namespaces` for a good time!
+
+```bash
+velero delete backup move-data-test -n velero
+velero delete backup velero-daily-backups-20240827000047 -n velero
+velero delete backup velero-daily-backups-20240826000046 -n velero
+```
+
+TANK CHECK:
+
+```bash
+velero describe backup move-data-test-smb --details
+```

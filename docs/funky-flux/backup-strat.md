@@ -169,7 +169,7 @@ Few issues checking if the automated backup worked this AM.
 1. The logs are in the wrong timezone and gone for when the backup should have happen
 1. The pod restarted right when the backup would have been triggered given the timezone the pod is logging
 
-However the next backup worked, and I could have tested this via `velero backup create --from-schedule=velero-daily`, but I still need monitoring...
+However the next backup worked, and I could have tested this via `velero backup create --from-schedule=velero-daily-backups`, but I still need monitoring...
 
 ##### Automated Backup Actually Worked
 
@@ -282,3 +282,42 @@ Restore completed with status: Completed. You may check for more information usi
 ```
 
 WOOOO my OpenWebUI user is still there! I guess that's a `Pod Volume Backups` backup.
+
+## Findings Later On
+
+1. Velero is snapshotting to the cluster and not moving them
+2. Need to annotate PVs and PVCs I don't want to backup like the huge SMB ones
+3. `moveSnapshotData` can be set to migrate the snapshots to S3 (I hope)
+
+### Testing it
+
+First, a quick cmd line test:
+
+```bash
+velero backup create move-data-test --include-namespaces=media-management --snapshot-move-data --wait
+```
+
+S3 Metrics show it's working and I should stop testing it immediately:
+
+![big-bucket]({{ site.url }}/images/web/big-bucket.png)
+
+For some reason the metrics lag so this doesn't even account for what I just did. 
+
+Need to annotate the SMB PVs and PVCs that mount the test media and hope that keeps the costs down:
+
+```yaml
+  annotations:
+    velero.io/exclude-from-backup: true
+```
+
+Also deleted the backups with `tank` present:
+
+```bash
+thaynes@kubem01:~$ velero delete backup move-data-test -n velero
+thaynes@kubem01:~$ velero delete backup move-data-test-smb -n velero
+thaynes@kubem01:~$ velero delete backup velero-daily-backups-20240827000047 -n velero
+thaynes@kubem01:~$ velero delete backup velero-daily-backups-20240827000047 -n velero
+thaynes@kubem01:~$ velero delete backup velero-daily-backups-20240826000046 -n velero
+```
+
+I guess in two days we'll know if this all works...
