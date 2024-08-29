@@ -168,3 +168,7 @@ sudo umount /mnt/nas01-data
 ```
 
 There is a `-f` option but I have not needed to use it.
+
+## vi
+
+Thanks to bashing into containers I now only have vi as an editor. [This doc](https://www.howtogeek.com/102468/a-beginners-guide-to-editing-text-files-with-vi/) seems pretty good though.
