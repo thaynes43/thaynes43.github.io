@@ -213,7 +213,7 @@ TODO: I set up radosgw for my other three notes in a craze of madness trying to 
 	host = pve03
 	keyring = /etc/pve/priv/ceph.client.radosgw.keyring
 	log_file = /var/log/ceph/client.rados.$host.log
-	rgw_dns_name = haynesnetwork
+	rgw_dns_name = example
 	rgw_frontends = civetweb port=192.168.0.175:7480
 ```
 

@@ -149,14 +149,22 @@ spec:
   timeout: 5m
   values:
     # Common https://github.com/bjw-s/helm-charts/blob/main/charts/library/common/values.yaml
+    defaultPodOptions:
+      annotations: 
+        backup.velero.io/backup-volumes-excludes: tank
+      securityContext:
+        fsGroup: 1000
     controllers:
       sonarr:
         containers:
           app:
             image:
               repository: lscr.io/linuxserver/sonarr # https://fleet.linuxserver.io/image?name=linuxserver/sonarr
-              tag: 4.0.8
+              tag: 4.0.9
               pullPolicy: IfNotPresent
+            env:
+              SONARR__AUTH__METHOD: External
+              SONARR__AUTH__REQUIRED: DisabledForLocalAddresses
     service:
       app:
         controller: sonarr
@@ -174,6 +182,12 @@ spec:
         size: 15Gi
         globalMounts:
           - path: /config
+            readOnly: false
+      tank:
+        type: persistentVolumeClaim
+        existingClaim: pvc-smb-tank-k8s-media-management
+        globalMounts:
+          - path: /tank
             readOnly: false
 ```
 
@@ -347,3 +361,43 @@ portal:
     enabled: true
 updated: true
 ```
+
+## External Auto Config
+
+I found [this chart](https://github.com/onedr0p/home-ops/blob/main/kubernetes/main/apps/default/sonarr/app/helmrelease.yaml) that shows how to configure External auth w/ envs.
+
+> **TODO** we may never use this externally so we may not want this
+
+## envs
+
+Looks like I can set some of the values I couldn't edit in config from env. For far I've tried:
+
+```yaml
+            env:
+              SONARR__AUTH__METHOD: External
+              SONARR__AUTH__REQUIRED: DisabledForLocalAddresses
+```
+
+[This HelmRelease](https://github.com/onedr0p/home-ops/blob/main/kubernetes/main/apps/default/sonarr/app/helmrelease.yaml) has a bunch more:
+
+```yaml
+            env:
+              SONARR__APP__INSTANCENAME: Sonarr
+              SONARR__APP__THEME: dark
+              SONARR__AUTH__METHOD: External
+              SONARR__AUTH__REQUIRED: DisabledForLocalAddresses
+              SONARR__LOG__DBENABLED: "False"
+              SONARR__LOG__LEVEL: info
+              SONARR__SERVER__PORT: &port 80
+              SONARR__UPDATE__BRANCH: develop
+              TZ: America/New_York
+```
+
+There are also a bunch of variables being set from external secretes [here](https://github.com/onedr0p/home-ops/blob/main/kubernetes/main/apps/default/sonarr/app/externalsecret.yaml).
+
+This looks pretty cool, like a way to share these values across services since they are being pulled from `1password` using this image `docker.io/1password/connect-api`.
+
+## System Upgrade
+
+For upgrading k3s and debian it looks like we can use [System Upgrade Controller](https://github.com/rancher/system-upgrade-controller).
+

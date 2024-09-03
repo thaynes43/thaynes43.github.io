@@ -145,9 +145,9 @@ I am going to temporarily switch vmbr2 over, which is my VPN VLAN, for these thr
 Now I need to update my DNS entries:
 
 | name | old IP | new IP | 
-| pve01-25.haynesnetwork | 192.168.3.101 | 192.168.40.6 |
-| pve02-25.haynesnetwork | 192.168.3.102 | 192.168.40.7 |
-| pve03-25.haynesnetwork | 192.168.3.103 | 192.168.40.8 |
+| pve01-25 | 192.168.3.101 | 192.168.40.6 |
+| pve02-25 | 192.168.3.102 | 192.168.40.7 |
+| pve03-25 | 192.168.3.103 | 192.168.40.8 |
 
 
 And now I need to update the k8s hosts to use this new network.
@@ -165,12 +165,12 @@ Forgot to change the port assignments to the new VLAN in Unifi and everything go
 That helped, now to fix more DNS entries:
 
 | VM | Old IP | New IP |
-| kubevip.haynesnetwork | 192.168.0.190 | 192.168.40.190 |
-| debian01.haynesnetwork | 192.168.0.6 | 192.168.40.253 |
-| debian02.haynesnetwork | 192.168.0.27 | 192.168.40.27 |
-| debian03.haynesnetwork | 192.168.0.208 | 192.168.40.206 |
+| kubevip | 192.168.0.190 | 192.168.40.190 |
+| debian01 | 192.168.0.6 | 192.168.40.253 |
+| debian02 | 192.168.0.27 | 192.168.40.27 |
+| debian03 | 192.168.0.208 | 192.168.40.206 |
 
-Now k8s hardcoded IPs broke! First edite `sudo nano /etc/kubernetes/kubelet.conf` and update `server:`. Then `systemctl restart kubelet`.
+Now k8s hardcoded IPs broke! First edit `sudo nano /etc/kubernetes/kubelet.conf` and update `server:`. Then `systemctl restart kubelet`.
 
 More IPs in here:
 
@@ -197,7 +197,7 @@ sudo kubeadm certs renew all
 Didn't work either. Nuclear option time which is for the best:
 
 ```
-thaynes@kubevip:~$ sudo kubeadm init --control-plane-endpoint=kubevip.haynesnetwork --cri-socket /var/run/cri-dockerd.sock --pod-network-cidr=10.244.0.0/16
+thaynes@kubevip:~$ sudo kubeadm init --control-plane-endpoint=kubevip.example --cri-socket /var/run/cri-dockerd.sock --pod-network-cidr=10.244.0.0/16
 [sudo] password for thaynes: 
 W0811 11:25:21.680439    5627 initconfiguration.go:125] Usage of CRI endpoints without URL scheme is deprecated and can cause kubelet errors in the future. Automatically prepending scheme "unix" to the "criSocket" with value "/var/run/cri-dockerd.sock". Please update your configuration!
 [init] Using Kubernetes version: v1.30.3
@@ -356,7 +356,7 @@ Default backend:  <default>
 Rules:
   Host                   Path  Backends
   ----                   ----  --------
-  podinfo.haynesnetwork  
+  podinfo.example  
                          /   podinfo:9898 (10.244.1.137:9898)
 Annotations:             meta.helm.sh/release-name: podinfo
                          meta.helm.sh/release-namespace: podinfo

@@ -250,8 +250,8 @@ This time I was able to ssh so at least I got past that:
 
 ```
 manof@HaynesHyperion MINGW64 ~
-$ ssh thaynes@mac02.haynesnetwork
-(thaynes@mac02.haynesnetwork) Password:
+$ ssh thaynes@mac02.example
+(thaynes@mac02.example) Password:
 Last login: Tue Jun 11 00:46:25 2024
 thaynes@mac02 ~ %
 ```

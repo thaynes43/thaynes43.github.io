@@ -320,7 +320,7 @@ apt install nut-client
 ```bash
 RUN_AS_USER root
 
-MONITOR APC-900W-01@nut01.haynesnetwork 1 admin PASSWORD slave
+MONITOR APC-900W-01@nut01.example 1 admin PASSWORD slave
 
 MINSUPPLIES 1
 SHUTDOWNCMD "/sbin/shutdown -h"
@@ -520,8 +520,8 @@ First restart for
 systemctl restart nut-client
 ```
 
-```
-root@pve01:/etc/nut# upsc APC-900W-01@nut01.haynesnetwork
+```bash
+root@pve01:/etc/nut# upsc APC-900W-01@nut01.example
 Init SSL without certificate database
 battery.charge: 100
 battery.charge.low: 10
@@ -579,15 +579,15 @@ On SERVER:
 
 And we get messages in the client showing the disconnect!
 
-```
+```bash
 Broadcast message from root@pve01 (somewhere) (Mon Jul 22 23:44:17 2024):      
                                                                                
-Communications with UPS APC-900W-01@nut01.haynesnetwork lost                   
+Communications with UPS APC-900W-01@nut01.example lost                   
                                                                                
                                                                                
 Broadcast message from root@pve01 (somewhere) (Mon Jul 22 23:44:21 2024):      
                                                                                
-Communications with UPS APC-900W-01@nut01.haynesnetwork established            
+Communications with UPS APC-900W-01@nut01.example established            
 ```
 
 ### Four More MS-01s

@@ -497,6 +497,6 @@ rm *.deb
 
 I updated the file-shareing plugin version but the rest were the latest already. The install threw some warnings but I let it ride since last time trying to fix things was worst.
 
-Fortunatly no suprised were left. Once I logged into the nice web UI via `https://nas01.haynesnetwork:9090/` I was able to create users and shares as the guide suggested. Only thing not in the guide was giving users permission to write vs. just the shares owner. Once I did that I was able to copy an ISO into it super fast.
+Fortunatly no suprised were left. Once I logged into the nice web UI via `https://nas01.example:9090/` I was able to create users and shares as the guide suggested. Only thing not in the guide was giving users permission to write vs. just the shares owner. Once I did that I was able to copy an ISO into it super fast.
 
 ![new nas01 share]({{ site.url }}/images/windows/new-nas01-share.png)

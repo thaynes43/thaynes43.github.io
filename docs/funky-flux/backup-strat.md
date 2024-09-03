@@ -107,7 +107,7 @@ sudo install -m 755 kubeseal /usr/local/bin/kubeseal
 
 Rest of the instructions worked but I didn't get into `Using our own keypair` for when the pod with the secrets go down, will need to look that over more when it's less late.
 
-May also be worth consulting [flux docs for sealed-secrets(https://fluxcd.io/flux/guides/sealed-secrets/) if something goes south.
+May also be worth consulting [flux docs for sealed-secrets](https://fluxcd.io/flux/guides/sealed-secrets/) if something goes south.
 
 ##### Back to S3
 
@@ -170,6 +170,8 @@ Few issues checking if the automated backup worked this AM.
 1. The pod restarted right when the backup would have been triggered given the timezone the pod is logging
 
 However the next backup worked, and I could have tested this via `velero backup create --from-schedule=velero-daily-backups`, but I still need monitoring...
+
+> **LATER** `velero backup create --from-schedule=velero-daily-backups` works great
 
 ##### Automated Backup Actually Worked
 
@@ -321,3 +323,263 @@ thaynes@kubem01:~$ velero delete backup velero-daily-backups-20240826000046 -n v
 ```
 
 I guess in two days we'll know if this all works...
+
+### That Did Not Work 
+
+#### Pruning Orphans
+
+I deleted backups that inflated what was on S3 but it just orphaned the volumes in restic. First I can use aws cli to see the bucket, config [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
+
+```
+thaynes@kubem01:~$ aws s3 ls
+2024-08-03 20:08:56 s3-hayneslab
+```
+
+Connection is good. Now on to the Orphans.
+
+```bash
+restic -r s3:s3-us-east-2.amazonaws.com/s3-hayneslab/restic/download-clients prune
+restic -r s3:s3-us-east-2.amazonaws.com/s3-hayneslab/restic/media-management prune
+```
+
+It wants a password!
+
+```bash
+kubectl get secret velero-repo-credentials -n velero -o jsonpath="{.data.repository-password}" | base64 --decode
+```
+
+#### They Aren't Orphans... Yet
+
+Turns out my smb shares are still being backed up. I need [this](https://github.com/vmware-tanzu/velero/blob/v1.9.1/site/content/docs/v1.9/restic.md#using-the-opt-out-approach) because I am using restic. 
+
+This is a pod level opt-out vs. volume so we are going to need to be SUPER FUCKING CAREFUL.
+
+```yaml
+    controllers:
+      controller-name:
+        annotations: 
+          backup.velero.io/backup-volumes-excludes: tank
+```
+
+Nuke backups:
+
+```bash
+velero delete backup velero-daily-backups-20240827114456 -n velero
+velero delete backup velero-daily-backups-20240828000048 -n velero
+velero delete backup velero-daily-backups-20240828132427 -n velero
+velero delete backup velero-daily-backups-20240829000002 -n velero
+velero delete backup velero-daily-backups-20240830000003 -n velero
+velero delete backup velero-daily-backups-20240831000004 -n velero
+```
+
+```
+thaynes@kubem01:~/workspace/secret-sealing$ velero get backups
+NAME                                  STATUS            ERRORS   WARNINGS   CREATED                         EXPIRES   STORAGE LOCATION   SELECTOR
+velero-daily-backups-20240830000003   PartiallyFailed   1        0          2024-08-29 20:00:03 -0400 EDT   8d        default            <none>
+velero-daily-backups-20240829000002   PartiallyFailed   2        3          2024-08-28 20:00:02 -0400 EDT   7d        default            <none>
+velero-daily-backups-20240825000045   PartiallyFailed   2        2          2024-08-24 20:00:45 -0400 EDT   3d        default            <none>
+velero-daily-backups-20240824000055   PartiallyFailed   4        0          2024-08-23 20:00:55 -0400 EDT   2d        default            <none>
+velero-daily-backups-20240823000054   PartiallyFailed   2        0          2024-08-22 20:00:54 -0400 EDT   1d        default            <none>
+velero-daily-backups-20240822000053   PartiallyFailed   2        0          2024-08-21 20:00:53 -0400 EDT   19h       default            <none>
+```
+
+Maybe we can fix this too?
+
+```
+thaynes@kubem01:~/workspace$ velero backup logs velero-daily-backups-20240831000004 | grep Error
+time="2024-08-31T00:00:07Z" level=error msg="Error backing up item" backup=velero/velero-daily-backups-20240831000004 error="daemonset pod not found in running state in node kubem03" error.file="/go/src/github.com/vmware-tanzu/velero/pkg/nodeagent/node_agent.go:112" error.function=github.com/vmware-tanzu/velero/pkg/nodeagent.IsRunningInNode logSource="pkg/backup/backup.go:510" name=metrics-server-557ff575fb-sbr8m
+```
+
+[This](https://docs.vmware.com/en/VMware-Tanzu-Mission-Control/services/tanzumc-using/GUID-4D06C68B-38D1-4319-9DBD-62D7FEE5D891.html) looks promising.
+
+
+Tolerations on pod we are erroring:
+
+```
+Tolerations:                 CriticalAddonsOnly op=Exists
+                             node-role.kubernetes.io/control-plane:NoSchedule op=Exists
+                             node-role.kubernetes.io/master:NoSchedule op=Exists
+                             node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+```
+
+Says we can add these to the node agents:
+
+`kubectl -n velero edit ds node-agent`
+```yaml
+tolerations:
+	  - key: node-role.kubernetes.io/control-plane
+	    operator: Exists
+	    effect: NoSchedule
+	  - key: node-role.kubernetes.io/master
+	    operator: Exists
+	    effect: NoSchedule
+```
+
+Or we can annotate the pod to exclude volumes:
+
+`backup.velero.io/backup-volumes-excludes=tmp-dir,ube-api-access-xwjr2`
+
+To apply:
+
+`kubectl -n YOUR_POD_NAMESPACE annotate pod/YOUR_POD_NAME backup.velero.io/backup-volumes-excludes=YOUR_VOLUME_NAME_1,YOUR_VOLUME_NAME_2,...`
+
+Or
+
+```bash
+k -n kube-system annotate pod/metrics-server-557ff575fb-sbr8m backup.velero.io/backup-volumes-excludes=tmp-dir,ube-api-access-xwjr2
+pod/metrics-server-557ff575fb-sbr8m annotated
+```
+
+This isn't ideal because if I recrate things it'll be gone but let's see what it does.
+
+### Now We Prune?
+
+```bash
+restic -r s3:s3-us-east-2.amazonaws.com/s3-hayneslab/restic/download-clients prune
+restic -r s3:s3-us-east-2.amazonaws.com/s3-hayneslab/restic/media-management prune
+```
+
+VICTORY!
+
+Each command output:
+
+```
+thaynes@kubem01:~/workspace/secret-sealing$ restic -r s3:s3-us-east-2.amazonaws.com/s3-hayneslab/restic/media-management prune
+repository 81eaa694 opened (repository version 2) successfully, password is correct
+created new cache in /home/thaynes/.cache/restic
+loading indexes...
+loading all snapshots...
+finding data that is still in use for 5 snapshots
+[0:00] 100.00%  5 / 5 snapshots
+searching used packs...
+collecting packs for deletion and repacking
+[0:00] 100.00%  3983 / 3983 packs processed
+
+to repack:           466 blobs / 5.025 MiB
+this removes:        396 blobs / 4.614 MiB
+to delete:         45979 blobs / 66.129 GiB
+total prune:       46375 blobs / 66.133 GiB
+remaining:           672 blobs / 3.589 MiB
+unused size after prune: 0 B (0.00% of remaining size)
+
+repacking packs
+[0:00] 100.00%  2 / 2 packs repacked
+rebuilding index
+[0:00] 100.00%  5 / 5 packs processed
+deleting obsolete index files
+[0:00] 100.00%  5 / 5 files deleted
+removing 3980 old packs
+[0:43] 100.00%  3980 / 3980 files deleted
+done
+```
+
+And I can see S3 dropped down from 140GB to about 7GB, mostly logs in the monitoring namespace.
+
+Now for the final test:
+
+```bash
+velero backup create --from-schedule=velero-daily-backups --wait
+```
+
+Some errors but it didn't upload any media!!!
+
+### Fixing the next error
+
+Got these errors:
+
+```
+time="2024-08-31T04:24:48Z" level=error msg="Error backing up item" backup=velero/velero-daily-backups-20240831042446 error="error executing custom action (groupResource=persistentvolumeclaims, namespace=download-clients, name=pvc-smb-tank-k8s-download-clients): rpc error: code = Unknown desc = failed to get VolumeSnapshotClass for StorageClass smb-tank-k8s: error getting VolumeSnapshotClass: failed to get VolumeSnapshotClass for provisioner smb.csi.k8s.io, \n\t\tensure that the desired VolumeSnapshot class has the velero.io/csi-volumesnapshot-class label" logSource="pkg/backup/backup.go:510" name=rdt-client-67d9d9f5dd-4mjkx
+
+time="2024-08-31T04:24:49Z" level=error msg="Error backing up item" backup=velero/velero-daily-backups-20240831042446 error="error executing custom action (groupResource=persistentvolumeclaims, namespace=media-management, name=pvc-smb-tank-k8s-media-management): rpc error: code = Unknown desc = failed to get VolumeSnapshotClass for StorageClass smb-tank-k8s: error getting VolumeSnapshotClass: failed to get VolumeSnapshotClass for provisioner smb.csi.k8s.io, \n\t\tensure that the desired VolumeSnapshot class has the velero.io/csi-volumesnapshot-class label" logSource="pkg/backup/backup.go:510" name=bazarr-7c47cf688d-sgwf9
+```
+
+I may need [this](https://velero.io/docs/v1.14/resource-filtering/) to filter these volumes from the snapshot part. But I Think the Restic part is doing what it should now and not copying everything over.
+
+```bash
+kubectl create cm configmap-velero-volumepolicies \
+--from-file config-velero-volumepolicies.yaml -o yaml \
+-n velero \
+--dry-run=client > configmap-velero-volumepolicies.yaml
+```
+
+Looks like we can simply say "don't back up volumes that are big" with a config map like this:
+
+`config-velero-volumepolicies.yaml`
+```yaml
+version: v1
+volumePolicies:
+# See https://velero.io/docs/v1.14/resource-filtering/
+- conditions:
+    # capacity condition matches the volumes whose capacity falls into the range (nothing after comma means that or larger)
+    capacity: "1Ti,"
+  action:
+    type: skip
+```
+
+And running the dry run gives:
+
+```yaml
+apiVersion: v1
+data:
+  config-velero-volumepolicies.yaml: |
+    version: v1
+    volumePolicies:
+    # See https://velero.io/docs/v1.14/resource-filtering/
+    - conditions:
+        # capacity condition matches the volumes whose capacity falls into the range (nothing after comma means that or larger)
+        capacity: "1Ti,"
+      action:
+        type: skip
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: configmap-velero-volumepolicies
+  namespace: velero
+```
+
+The pvs were set for 100Gi but they just map to whatever is there. I can't change the pvc after the fact either. If I wanted to I could delete them and go with something more obvious like `10Ti`. for tank.k8s and `100Ti` for HaynesTower.media.
+
+#### Test It
+
+Config map is there:
+
+```
+thaynes@kubem01:~/workspace/velero$ k -n velero get configmaps
+NAME                              DATA   AGE
+configmap-velero-volumepolicies   1      65m
+```
+
+I also renamed the schedule because it wasn't changing from just adding the config map. New one shows the configmap:
+
+```yaml
+Resource policies:
+  Type:  configmap
+  Name:  configmap-velero-volumepolicies
+```
+
+Now for the test!
+
+```bash
+velero backup create --from-schedule=velero-hayneslab-backups --wait
+```
+
+Ends up with TONS of errors for pods with no PVCsq
+
+```
+time="2024-08-31T15:36:05Z" level=error msg="Error backing up item" backup=velero/velero-hayneslab-backups-20240831153602 error="volume authentik/dshm has no PVC associated with it" error.file="/go/src/github.com/vmware-tanzu/velero/pkg/util/kube/pvc_pv.go:392" error.function=github.com/vmware-tanzu/velero/pkg/util/kube.GetPVCForPodVolume logSource="pkg/backup/backup.go:510" name=authentik-postgresql-0
+```
+
+Looks like maybe there is a [fix](https://github.com/vmware-tanzu/velero/issues/8042). Will try `tag: v1.14.1`. 
+
+WOO finally a clean backup!
+
+```
+velero-hayneslab-backups-20240831155540   Completed         0        0          2024-08-31 11:55:40 -0400 EDT   9d        default            <none>
+```
+
+## Volsync
+
+Running into a lot of things around `volsync` for hands free recovery. May be worth a look as it only focuses on your volumes. 
+
+* https://github.com/backube/volsync

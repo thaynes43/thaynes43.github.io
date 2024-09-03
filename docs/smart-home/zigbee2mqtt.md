@@ -113,9 +113,9 @@ spec:
         storageClassName: ceph-rbd
     zigbee2mqtt:
       mqtt:
-        server: "mqtt://mosquitto.haynesnetwork:1883"
+        server: "mqtt://mosquitto.example:1883"
       serial:
-        port: "tcp://tubeszb-zigbee01.haynesnetwork:6638" # https://github.com/tube0013/tube_gateways?tab=readme-ov-file#network-coordinators-1
+        port: "tcp://tubeszb-zigbee01.example:6638" # https://github.com/tube0013/tube_gateways?tab=readme-ov-file#network-coordinators-1
         adapter: ember
       advanced:
         # Changing requires re-pairing of all devices! (Note: use a ZLL channel: 11, 15, 20, or 25 to avoid Problems)

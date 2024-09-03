@@ -115,7 +115,7 @@ spec:
           metallb.universe.tf/loadBalancerIPs: 192.168.40.116
     env:
       INSTANCE_NAME: "haynes-intelligence-searxng"
-      BASE_URL: "https://searxng.haynesnetwork.com/"
+      BASE_URL: "https://searxng.example.com/"
       AUTOCOMPLETE: "google"
       SEARXNG_SECRET: 
         valueFrom:
@@ -330,15 +330,15 @@ The process is well documented in my first tutorial located [here](https://hayne
 apiVersion: externaldns.k8s.io/v1alpha1
 kind: DNSEndpoint
 metadata:
-  name: "searxng.haynesnetwork.com"
+  name: "searxng.example.com"
   namespace: external-dns
 spec:
   endpoints:
-  - dnsName: "searxng.haynesnetwork.com"
+  - dnsName: "searxng.example.com"
     recordTTL: 180
     recordType: CNAME
     targets:
-    - "haynesnetwork.com"
+    - "example.com"
 ```
 
 ### Ingress Route
@@ -356,7 +356,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`www.searxng.haynesnetwork.com`)
+    - match: Host(`www.searxng.example.com`)
       kind: Rule
       services:
         - kind: Service
@@ -367,7 +367,7 @@ spec:
         - name: authentik-auth-proxy
           namespace: traefik
     - kind: Rule
-      match: Host(`searxng.haynesnetwork.com`) && PathPrefix(`/`)
+      match: Host(`searxng.example.com`) && PathPrefix(`/`)
       services:
         - kind: Service
           name: searxng
@@ -377,5 +377,5 @@ spec:
         - name: authentik-auth-proxy
           namespace: traefik
   tls:
-    secretName: certificate-haynesnetwork.com
+    secretName: certificate-example.com
 ```

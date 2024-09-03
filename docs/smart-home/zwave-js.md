@@ -154,7 +154,7 @@ The chart is a bit different than others for [pvc template](https://github.com/k
 ### Error 2
 
 ```
-  Warning  Failed                  2m43s (x4 over 3m32s)   kubelet                  Error: failed to create containerd task: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error mounting "/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/zwave-js-ui/tcp:/tubeszb-zwave01.haynesnetwork:6638" to rootfs at "/dev/ttyUSB0": stat /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/zwave-js-ui/tcp:/tubeszb-zwave01.haynesnetwork:6638: no such file or directory: unknown
+  Warning  Failed                  2m43s (x4 over 3m32s)   kubelet                  Error: failed to create containerd task: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error mounting "/run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/zwave-js-ui/tcp:/tubeszb-zwave01.example:6638" to rootfs at "/dev/ttyUSB0": stat /run/k3s/containerd/io.containerd.runtime.v2.task/k8s.io/zwave-js-ui/tcp:/tubeszb-zwave01.example:6638: no such file or directory: unknown
 ```
 
 This was adapter configuration related which was all but certain. For this I simply removed the path to the usbdevice.
@@ -165,7 +165,7 @@ First, I must trend lightly here:
 
 ![zwave-is-illegal]({{ site.url }}/images/haos/zwave/zwave-is-illegal.png)
 
-Now that it's live I need to configure Z-Wave to use `tcp://tubeszb-zwave01.haynesnetwork:6638` and pair some devices. To start we will use a [Zooz ZSE41 open | close xs sensor](https://devices.zwave-js.io/?jumpTo=0x027a:0x7000:0xe001:0.0) which will pair well with my device.
+Now that it's live I need to configure Z-Wave to use `tcp://tubeszb-zwave01.example:6638` and pair some devices. To start we will use a [Zooz ZSE41 open | close xs sensor](https://devices.zwave-js.io/?jumpTo=0x027a:0x7000:0xe001:0.0) which will pair well with my device.
 
 Took me a while to find the button to add new devices but here it is:
 
@@ -181,7 +181,7 @@ This was so easy there's really not much to say. I just went "Add Integration" -
 
 ![add-zwave]({{ site.url }}/images/haos/add-zwave.png)
 
-Then I just pointed at my instance of ZWave-JS-UI (which I mapped to a nice DNS entry `ws://zwave.haynesnetwork:3000`) and everything was instantly added!
+Then I just pointed at my instance of ZWave-JS-UI (which I mapped to a nice DNS entry `ws://zwave.example:3000`) and everything was instantly added!
 
 ![first-zwave-device-in-haos]({{ site.url }}/images/haos/first-zwave-device-in-haos.png)
 

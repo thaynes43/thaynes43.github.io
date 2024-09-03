@@ -378,4 +378,73 @@ Though annoying I had to copy paste the same pv and pvc twice to get it across t
 
 ## HaynesTower (unRAID) Test
 
-> **TODO**
+### SealedSecrets w/ SMB Credentials
+
+Once again we need the credentials
+
+```bash
+kubectl create secret generic smbcreds-haynestower-k8s \
+--namespace default \
+--dry-run=client \
+--from-literal username="USERNAME" \
+--from-literal password="PASSWORD" \
+-o yaml > smbcreds-haynestower-k8s.yaml
+```
+
+Seal it up:
+
+```bash
+cat smbcreds-haynestower-k8s.yaml | kubeseal --controller-name=sealed-secrets --controller-namespace=sealed-secrets --cert pub-cert.pem --format yaml > sealedsecret-smbcreds-haynestower-k8.yaml
+```
+
+Copy paste in:
+
+`sealedsecret-smbcreds-haynestower-k8.yaml`
+```yaml
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: smbcreds-haynestower-k8s
+  namespace: default
+spec:
+  encryptedData:
+    password: SEALEDREDACTED
+    username: SEALEDREDACTED
+  template:
+    metadata:
+      creationTimestamp: null
+      name: smbcreds-haynestower-k8s
+      namespace: default
+```
+
+### StorageClass
+
+Next I'll create a storage class if we want to provision volumes on the fly. Not sure we need this for the static volume we'll be testing though.
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: smb-haynestower-k8s
+provisioner: smb.csi.k8s.io
+parameters:
+  source: //HAYNESTOWER/k8s
+  # if csi.storage.k8s.io/provisioner-secret is provided, will create a sub directory
+  # with PV name under source
+  csi.storage.k8s.io/provisioner-secret-name: smbcreds-haynestower-k8s
+  csi.storage.k8s.io/provisioner-secret-namespace: default
+  csi.storage.k8s.io/node-stage-secret-name: smbcreds-haynestower-k8s
+  csi.storage.k8s.io/node-stage-secret-namespace: default
+reclaimPolicy: Retain  # available values: Delete, Retain
+volumeBindingMode: Immediate
+mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  - uid=1000
+  - gid=1000
+```
+
+### Static Volume Mounting to More Test Media
+
+Before we really "go live" I'm setting up some test media on HaynesTower to make sure everything plays nicely and we don't throw it all up to S3 again.

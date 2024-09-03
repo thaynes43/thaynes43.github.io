@@ -217,7 +217,6 @@ https://192.168.0.14:8007/#pbsDashboard
 
 https://docs.nvidia.com/deeplearning/frameworks/user-guide/index.html#runcont
 https://github.com/thaynes43/thaynes43.github.io
-http://kubevip.haynesnetwork:32181/2024/05/13/hello-world/#comment-3
 https://us.moshi.chat/
 http://homeassistant.local:8123/config/devices/device/e38c74aea575987ca65cc36877dccb1e
 https://openai.com/index/hello-gpt-4o/
@@ -234,7 +233,6 @@ https://github.com/pytorch/torchtune/blob/main/recipes/configs/llama2/7B_lora_si
 https://github.com/pytorch/torchtune/blob/main/recipes/configs/llama3/8B_lora.yaml
 https://pytorch.org/torchtune/stable/api_ref_datasets.html#datasets
 https://pytorch.org/torchtune/stable/api_ref_datasets.html#datasets
-https://nas01.haynesnetwork:9090/system
 https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch
 https://jupyter.org/install
 https://forums.developer.nvidia.com/t/using-a-jupyter-notebook-within-a-docker-container/60188/3

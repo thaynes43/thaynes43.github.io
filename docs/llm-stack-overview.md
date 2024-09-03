@@ -51,6 +51,15 @@ Add:
 Environment="OLLAMA_MODELS=//nas01/Data/LLM/Ollama"
 ```
 
+```
+### Editing /etc/systemd/system/ollama.service.d/override.conf
+### Anything between here and the comment below will become the new contents of the file
+
+[Service]
+Environment="OLLAMA_HOST=0.0.0.0"
+Environment="OLLAMA_MODELS=/mnt/nas01-data/LLM/Ollama"
+```
+
 Or here `/mnt/nas01-data/LLM/Ollama`.
 
 Now we have 
@@ -103,10 +112,12 @@ lrwxrwxrwx 1 root root 32 Aug 24 18:47 /etc/resolv.conf -> /run/systemd/resolve/
 # See man:systemd-resolved.service(8) for details about the supported modes of
 # operation for /etc/resolv.conf.
 
-nameserver 127.0.0.53
+nameserver 192.168.40.1
 options edns0 trust-ad
 search .
 ```
+
+Then `chattr +i /etc/resolv.conf`
 
 sudo ln -sf /home/thaynes/fakeresolv.conf /etc/resolv.conf
 
@@ -166,7 +177,8 @@ open-webui-pipelines-6d54bfdf4d-4qj2k   0/1     Pending   0          26s
 
 ```
 
-http://kubevip.haynesnetwork:8081
+http://kubevip.example:8081
+
 If it goes bad:
 
 ```
@@ -201,7 +213,7 @@ Didn't work either. Maybe this is the reverse proxy thing... Next for NodePort.
 
 This [guide](https://medium.com/@r.kosse/run-open-webui-with-kubernetes-be5fad2a7938#:~:text=Run%20Open%20WebUI%20with%20Kubernetes%201%20Docker%20desktop,interface%20...%207%20Create%20an%20Admin%20Account%20) made my ask what CLusterIP was. It doesn't look great according to [this]. 
 
-And BOOM I'm in via `http://kubevip.haynesnetwork:30000/` but it wants me to make an account!
+And BOOM I'm in via `http://kubevip.example:30000/` but it wants me to make an account!
 
 Now I need to hit ollama, [this](https://www.reddit.com/r/LocalLLaMA/comments/1dack04/open_web_ui_and_ollama_server_connection_issue/) seems reasonable.
 

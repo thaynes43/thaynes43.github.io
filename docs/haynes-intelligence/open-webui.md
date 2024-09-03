@@ -116,7 +116,7 @@ I have older values I was using in Kubernetes before I switched to `flux`. It's 
       enabled: false
 
     # -- A list of Ollama API endpoints. These can be added in lieu of automatically installing the Ollama Helm chart, or in addition to it.
-    ollamaUrls: [http://pop01.haynesnetwork:11434] # TODO traefik this 
+    ollamaUrls: [http://pop01.example:11434] # TODO traefik this 
 
     # If > 1 use cephfs w/ ReadWriteMany
     # TODO Keep at 1, seems to be a lot of problems with replication at the moment
@@ -153,7 +153,7 @@ I have older values I was using in Kubernetes before I switched to `flux`. It's 
             name: openai-open-webui-api-key
             key: apikeys
       - name: OPENID_PROVIDER_URL
-        value: "https://authentik.haynesnetwork.com/application/o/open-webui/.well-known/openid-configuration"
+        value: "https://authentik.example.com/application/o/open-webui/.well-known/openid-configuration"
       - name: OAUTH_CLIENT_ID
         valueFrom:
           secretKeyRef:
