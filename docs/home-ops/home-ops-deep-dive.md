@@ -13,8 +13,6 @@ Finding other people's flux repos has shown me the way more than any tutorials c
 
 Sometimes I update stuff and the pods do not take it. [Reloader](https://github.com/stakater/Reloader) makes em take it. I noticed it when reviewing [these charts](https://github.com/onedr0p/home-ops/blob/main/kubernetes/main/apps/default/sonarr/app/helmrelease.yaml) and figured it was worth a look since I've already been stuck waiting for updates that never come.
 
-
-
 ### The plan
 
 Maybe the bot we need? I see the bot all over [home-ops](https://github.com/onedr0p/home-ops/commits?author=bot-ross%5Bbot%5D) and I also see [dependabot](https://github.com/external-secrets/external-secrets/commits?author=dependabot%5Bbot%5D) referenced in a lot of repositories. 

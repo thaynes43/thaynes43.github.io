@@ -114,6 +114,12 @@ adventuresnav:
         url: /docs/haynes-intelligence/open-webui/
       - title: Invidious
         url: /docs/funky-flux/invidious/
+      - title: Home Ops
+        url: /docs/home-ops/deep-dive/
+      - title: Internal vs. External Ingress
+        url: /docs/home-ops/internal-vs-external-ingress/
+      - title: Version Management
+        url: /docs/home-ops/version-management/
 
 sheetsnav:
   - title: Cheat Sheets
