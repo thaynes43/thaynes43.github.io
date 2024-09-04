@@ -212,9 +212,9 @@ kubectl delete pod -n velero  --field-selector=status.phase==Failed
 ```
 
 ```bash
-kubectl delete jobs -n velero --field-selector status.successful=1
-
 kubectl get jobs  -n velero --field-selector status.successful=1
+
+kubectl delete jobs -n velero --field-selector status.successful=1
 ```
 
 Pass ``--all-namespaces` for a good time!
@@ -229,4 +229,9 @@ TANK CHECK:
 
 ```bash
 velero describe backup move-data-test-smb --details
+```
+
+```bash
+kubectl -n velero rollout restart daemonset node-agent
+kubectl -n velero rollout restart deployment velero
 ```

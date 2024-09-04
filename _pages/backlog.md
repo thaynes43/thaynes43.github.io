@@ -137,6 +137,7 @@ Once we move I will set up InnerSpace for the new house's coverage and use the p
 #### Local LLM
 
 * [Pop!_OS](https://pop.system76.com/) recommended for hosting [ollama](https://ollama.com/)
+* [STABLE DIFFUSION](https://github.com/Stability-AI/StableDiffusion)!
 
 #### AI LINKS
 
@@ -153,7 +154,7 @@ Once we move I will set up InnerSpace for the new house's coverage and use the p
 * https://github.com/hiyouga/LLaMA-Factory
 * https://huggingface.co/datasets
 * https://github.com/modelscope/modelscope
-* 
+* https://github.com/Lawfam/LLM-Collab -> MAKE EM TALK TO EACH OTHER
 
 ### C# / App Development
 
