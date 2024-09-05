@@ -235,3 +235,15 @@ velero describe backup move-data-test-smb --details
 kubectl -n velero rollout restart daemonset node-agent
 kubectl -n velero rollout restart deployment velero
 ```
+
+## Stuck stuff
+
+```bash
+kubectl get volumeattachment
+```
+
+See if it's attached, remove finalizers:
+
+```bash
+kubectl patch pvc {PVC_NAME} -p '{"metadata":{"finalizers":null}}'
+```
