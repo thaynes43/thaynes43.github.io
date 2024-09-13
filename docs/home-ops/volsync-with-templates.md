@@ -30,8 +30,3 @@ TODO List:
 ```
 
 > **NOTE** Will have to get rid of the stuff I am switching to the templates and re-create the volumes
-
-Some renovate stuff:
-
-1. If you use regex you need https://github.com/joryirving/home-ops/blob/main/.github/renovate/customManagers.json5
-

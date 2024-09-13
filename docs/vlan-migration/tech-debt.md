@@ -172,8 +172,8 @@ Critical functions and new VMs have been switched over but many are offline and 
 | nas01 | 192.168.40.52 | y |
 | nut02 | 192.168.40.53 | y |
 | pop01 | 192.168.40.54 | y |
-| WinGaming01 | 192.168.40.55 | n |
-| WinGaming02 | 192.168.40.56 | n |
+| WinGaming01 | 192.168.40.55 | removed DNS |
+| WinGaming02 | 192.168.40.56 | removed DNS |
 | ---- | Back to MS-01s | ---- |
 | ubuntu01 | 192.168.40.57 | n |
 | mac01 | 192.168.40.58 | y |

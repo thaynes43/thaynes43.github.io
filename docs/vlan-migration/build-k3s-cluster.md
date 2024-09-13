@@ -319,6 +319,7 @@ Then:
 ```bash
 kubectl krew install oidc-login
 kubectl krew install whoami
+kubectl krew install browse-pvc
 ```
 
 #### .bashrc
@@ -333,4 +334,14 @@ complete -o default -F __start_kubectl k
 source /usr/share/bash-completion/bash_completion
 export KUBECONFIG=~/.kube/config
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+```
+
+#### AWS Cli
+
+[Follow this](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
 ```
