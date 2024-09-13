@@ -242,8 +242,14 @@ kubectl -n velero rollout restart deployment velero
 kubectl get volumeattachment
 ```
 
-See if it's attached, remove finalizers:
+See if it's attached, remove finalizes:
 
 ```bash
 kubectl patch pvc {PVC_NAME} -p '{"metadata":{"finalizers":null}}'
+```
+
+Or if it's stuck in released:
+
+```bash
+kubectl patch pv pv-smb-tank-k8s-media-management -p '{"spec":{"claimRef": null}}'
 ```

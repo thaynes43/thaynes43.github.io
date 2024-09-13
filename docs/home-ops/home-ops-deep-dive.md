@@ -9,6 +9,18 @@ Finding other people's flux repos has shown me the way more than any tutorials c
 - kashalls https://github.com/kashalls/home-cluster
 - bjw-s https://github.com/bjw-s/home-ops 
 
+Or some templates:
+
+- https://github.com/techno-tim/k3s-ansible
+- https://github.com/danmanners/aws-argo-cluster-template
+- https://github.com/khuedoan/homelab
+- https://github.com/ricsanfre/pi-cluster
+
+More to be found from contributors of [this archived goldmine](https://github.com/k8s-at-home).
+
+- angelnu https://github.com/angelnu/k8s-gitops calls out tearing it down with no data loss but seems to use NFS for everything.
+- billimek https://github.com/billimek/k8s-gitops has [good readmes](https://github.com/billimek/k8s-gitops/blob/master/kube-system/README.md) every step of the way
+
 ## Reloader
 
 Sometimes I update stuff and the pods do not take it. [Reloader](https://github.com/stakater/Reloader) makes em take it. I noticed it when reviewing [these charts](https://github.com/onedr0p/home-ops/blob/main/kubernetes/main/apps/default/sonarr/app/helmrelease.yaml) and figured it was worth a look since I've already been stuck waiting for updates that never come.
@@ -42,6 +54,10 @@ I don't think I'm quite where I need to be for effortlessly being able to deploy
 ### Observability
 
 There is a lot of work to do in this area, examples [here](https://github.com/bjw-s/home-ops/tree/main/kubernetes/main/apps/monitoring) but probably others in other cluster repos. Need to get a solid foundation I can keep adding to as I host something new.
+
+#### Alert Manager
+
+[Check this out](https://status.devbu.io/)! This is part of `kube-prometheus-stack` under kashalls but everyone is rocking it. 
 
 ### Seamless DNS Entries for Internal and External Services
 
@@ -131,3 +147,195 @@ The [intel-device-plugins-for-kubernetes](https://github.com/intel/intel-device-
 ### Esphome
 
 [Esphome](https://github.com/esphome/esphome) is currently embedded in my HAOS instance and controls a few devices but I can run it standalone like Z2M instead. 
+
+### Databases
+
+I'm not managing database right. Just using what comes in the chart is not going to cut it. 
+
+#### Cloudnative-PG
+
+TODO
+
+#### Postgres Backup
+
+Need a way to do DB backups independently of volume backups
+
+```yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: database
+spec:
+  schedule: "0 4 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          securityContext:
+            runAsUser: 1031
+            runAsGroup: 1031
+            fsGroup: 1031
+            supplementalGroups:
+              - 65541
+
+          containers:
+            - name: zalando-postgres-backup
+              image: docker.io/prodrigestivill/postgres-backup-local:15@sha256:7f12039af361b71c987ad06b5c0a9dca67bad92f10bffa5012a614311363eebb
+              imagePullPolicy: IfNotPresent
+              command:
+                - "/backup.sh"
+              env:
+                - name: POSTGRES_EXTRA_OPTS
+                  value: "-n public -Z6"
+                - name: POSTGRES_HOST
+                  value: postgres.database.svc.cluster.local
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres.postgres.credentials.postgresql.acid.zalan.do
+                      key: username
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres.postgres.credentials.postgresql.acid.zalan.do
+                      key: password
+                - name: POSTGRES_DB
+                  value: "dsmr-reader,home-assistant,immich,miniflux"
+              volumeMounts:
+                - name: nas-backups
+                  mountPath: /backups
+
+          restartPolicy: OnFailure
+
+          volumes:
+            - name: nas-backups
+              nfs:
+                server: "nas.bjw-s.casa"
+                path: /volume1/Backup/Databases/postgresql
+```
+
+#### Redis / Dragonfly
+
+[Dragonfly](https://www.dragonflydb.io/) makes some bold claims about beating out redis. Seems like people host one instance and use it for things, may be worth a look. 
+
+## Hardware Dependency 
+
+Check out what this guy says [here](https://github.com/billimek/k8s-gitops/blob/master/kube-system/README.md#descheduler) - seems like we may be able do deal with usb devices for stuff like the NUT servers if we use this feature discovery thing! 
+
+## Namespace Alerts
+
+See this in every namespace (in onedr0p)!
+
+```yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
+    volsync.backube/privileged-movers: "true"
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/notification.toolkit.fluxcd.io/provider_v1beta3.json
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Provider
+metadata:
+  name: alert-manager
+  namespace: default
+spec:
+  type: alertmanager
+  address: http://alertmanager-operated.observability.svc.cluster.local:9093/api/v2/alerts/
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/notification.toolkit.fluxcd.io/alert_v1beta3.json
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: alert-manager
+  namespace: default
+spec:
+  providerRef:
+    name: alert-manager
+  eventSeverity: error
+  eventSources:
+    - kind: HelmRelease
+      name: "*"
+  exclusionList:
+    - "error.*lookup github\\.com"
+    - "error.*lookup raw\\.githubusercontent\\.com"
+    - "dial.*tcp.*timeout"
+    - "waiting.*socket"
+  suspend: false
+```
+
+## WTF Is SOPS
+
+[Sops](https://github.com/getsops/sops) is about secrets. That is all I know. Why does someone need sops? 
+
+OK it let's you push shit like this:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+    name: github-deploy-key
+    namespace: flux-system
+stringData:
+    identity: HUGE
+    known_hosts: HUGE
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age15uzrw396e67z9wdzsxzdk7ka0g2gr3l460e0slaea563zll3hdfqwqxdta
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            HUGE
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2024-06-28T22:37:16Z"
+    mac: HUGE
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    mac_only_encrypted: true
+    version: 3.9.0
+```
+
+And then you can bootstrap when you don't have an `external-secrets` pod running.
+
+## Docs
+
+https://onedr0p.github.io/home-ops/
+
+These are the docs in the home-ops repo. I guess you can use a folder as a symbol too, that is fancy: 📁
+
+Cool up time via https://uptimerobot.com/
+
+Email via https://migadu.com/
+
+These are SOLID manuals -> https://www.sphinx-doc.org/en/master/ themed with https://github.com/readthedocs/sphinx_rtd_theme from https://about.readthedocs.com/?ref=readthedocs.org
+
+## Gatus
+
+[Gatus](https://github.com/TwiN/gatus) is a very nice health dashboard that is tied into everything - setting this up looks like it'll teach me a lot too as there are templates, postgres, fancy YAML all involved. 
+
+## EMQX
+
+[EMQX](https://www.emqx.com/en) seems to replace mosquitto and has a dashboard! May be worthy. It [works with HomeAssistant](https://docs.emqx.com/en/cloud/latest/connect_to_deployments/home_assistant.html) too.
+
+## R2
+
+I bought some [R2 Storage](https://dash.cloudflare.com/1adbb78981186f1bd409cc11913b459a/r2/overview) for free though. Seems better than what I am using over at AWS.
+
+## Local Storage
+
+* [OpenEBS](https://github.com/openebs/openebs)
+* Minio 
+
+`cacheStorageClassName: "${VOLSYNC_CACHE_SNAPSHOTCLASS:-openebs-hostpath}"` puts the VolSync cache in openebs instead of ceph.
+
+It is using OpenEBS to create a single node volume that holds the cache.

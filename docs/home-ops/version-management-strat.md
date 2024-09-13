@@ -16,6 +16,10 @@ So far I have found two options that look good. Renovate and Dependabot, though 
 - [Docs](https://docs.renovatebot.com/)
 - [GitHub](https://github.com/renovatebot/renovate)
 
+Some renovate stuff:
+
+1. If you use regex you need https://github.com/joryirving/home-ops/blob/main/.github/renovate/customManagers.json5
+
 ### Dependabot
 
 GitHub's Dependabot seems to be able to update the versions for you which is documented [here](https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuring-dependabot-version-updates). I seem to see a lot of this going on. 

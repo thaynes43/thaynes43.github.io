@@ -284,6 +284,14 @@ WARNING: You installed plugin "oidc-login" from the krew-index plugin repository
 thaynes@kubem01:~$ 
 ```
 
+#### New One - browse-pvc
+
+See [browse-pvc](https://github.com/clbx/kubectl-browse-pvc).
+
+```bash
+kubectl krew install browse-pvc
+```
+
 Now back to the OCD stuff.
 
 ### oidc-login Setup

@@ -177,6 +177,8 @@ But pairing from there was easy (since the default options all worked)!
 
 ## Home Assistant Integration
 
+Before you do this make sure you enable "WS Server" 
+
 This was so easy there's really not much to say. I just went "Add Integration" -> Uncheck "Use the Z-Wave JS Supervisor add-on" -> Submit:
 
 ![add-zwave]({{ site.url }}/images/haos/add-zwave.png)

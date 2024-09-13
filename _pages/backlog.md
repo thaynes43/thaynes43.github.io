@@ -204,6 +204,9 @@ Found a [cool site](https://distrowatch.com/dwres.php?resource=major) that lists
 * [Bliss OS](https://sourceforge.net/projects/blissos-dev/) which is what Waydroid-Linux points to and seems better than the containerized install on Ubuntu
 * [Madness](https://en.wikipedia.org/wiki/TempleOS)
 
+### World Server
+
+[AzerothCore](https://www.azerothcore.org/wiki/home) looks pretty suck tbh.
 
 ### DUMP
 
