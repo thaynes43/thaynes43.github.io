@@ -43,8 +43,6 @@ curl -s https://fluxcd.io/install.sh | sudo bash
 
 #### Sealed Secrets
 
-I remembered this one though it was broken in the guide:
-
 ```bash
 wget https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.27.1/kubeseal-0.27.1-linux-amd64.tar.gz
 tar -xvf kubeseal-0.27.1-linux-amd64.tar.gz
@@ -62,6 +60,8 @@ sudo install -m 755 velero /usr/local/bin/velero
 #### AWS
 
 [Follow this](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+
+> **Pre-req** you may need to `sudo apt install unzip` first
 
 ```bash
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
