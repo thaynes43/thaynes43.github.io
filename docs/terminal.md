@@ -25,6 +25,8 @@ Then followed [these steps](https://kubernetes.io/docs/tasks/tools/install-kubec
 
 Check the [krew docks](https://krew.sigs.k8s.io/docs/user-guide/setup/install/) on how to install this. Then install a plugin called [kubelogin](https://github.com/int128/kubelogin).
 
+> **NOTE** Make sure to add `export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"` to `.bashrc` and not just in the active terminal
+
 Then:
 
 ```bash
