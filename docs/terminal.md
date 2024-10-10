@@ -16,7 +16,7 @@ You need a `config` file in your `~/.kube` directory to access the cluster. Afte
 I used snap but anything is fine:
 
 ```bash
-sudo snap install kubectl
+sudo snap install kubectl --classic
 ```
 
 Then followed [these steps](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) to set up autocomplete and the alias. 

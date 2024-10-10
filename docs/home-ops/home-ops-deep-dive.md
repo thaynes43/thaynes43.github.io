@@ -339,3 +339,8 @@ I bought some [R2 Storage](https://dash.cloudflare.com/1adbb78981186f1bd409cc119
 `cacheStorageClassName: "${VOLSYNC_CACHE_SNAPSHOTCLASS:-openebs-hostpath}"` puts the VolSync cache in openebs instead of ceph.
 
 It is using OpenEBS to create a single node volume that holds the cache.
+
+## Keycloak GitOps
+
+Someone said to use [Flux with Terraform](https://fluxcd.io/blog/2022/09/how-to-gitops-your-terraform/) to configure KeyCloak so it was GitOps - "I deploy it with the helm chart and configure it via Terraform with the tf-controller for Flux". See [his repo](https://github.com/mirceanton/home-ops/)
+

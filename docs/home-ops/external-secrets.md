@@ -246,5 +246,170 @@ Easy enough to drop in, will revisit later when I actually test it.
 
 ## External Secrets
 
-Now time for the payout! 
+Now time for the payout! This went very smooth.
 
+First I made two flux kustomizations, one for the external secret app and the other for the 1Password store:
+
+```yaml
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app external-secrets
+  namespace: flux-system
+spec:
+  targetNamespace: external-secrets
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+  interval: 15m
+  retryInterval: 1m
+  timeout: 2m
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./kubernetes/main/apps/system/secrets/external/external-secrets/app
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2beta1
+      kind: HelmRelease
+      name: external-secrets
+      namespace: external-secrets
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: &app external-secrets-stores
+  namespace: flux-system
+spec:
+  targetNamespace: external-secrets
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
+  interval: 15m
+  retryInterval: 1m
+  timeout: 2m
+  prune: true
+  wait: true
+  dependsOn:
+    - name: external-secrets
+    - name: onepassword-connect
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./kubernetes/main/apps/system/secrets/external/external-secrets/stores
+```
+
+The store is the only interesting thing here - it points to my 1Password integration and tells it to prioritize the `HaynesKube` vault first. If I needed to access other vaults I could add them in descending order of priority.
+
+```yaml
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/clustersecretstore_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: onepassword-connect
+spec:
+  provider:
+    onepassword:
+      connectHost: http://onepassword-connect.external-secrets.svc.cluster.local
+      vaults:
+        HaynesKube: 1
+      auth:
+        secretRef:
+          connectTokenSecretRef:
+            name: onepassword-connect-secret
+            key: token
+            namespace: external-secrets
+```
+
+The app itself has a simple HelmRelease with some serviceMonitors that I need to dig into more later:
+
+```yaml
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-secrets
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: external-secrets
+      version: 0.10.3
+      sourceRef:
+        kind: HelmRepository
+        name: external-secrets
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      strategy: rollback
+      retries: 3
+  dependsOn:
+    - name: onepassword-connect
+      namespace: external-secrets
+  values:
+    installCRDs: true
+    serviceMonitor:
+      enabled: true
+      interval: 1m
+    webhook:
+      serviceMonitor:
+        enabled: true
+        interval: 1m
+    certController:
+      serviceMonitor:
+        enabled: true
+        interval: 1m
+```
+
+To test it I added a password in 1Password by following [this outdated guide](https://external-secrets.io/main/provider/1password-automation/) named `emqx` and added a secret using two key,value pairs I added under a "section" in the password while leaving the password itself blank (bit conveluted).
+
+```yaml
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/external-secrets.io/externalsecret_v1beta1.json
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: emqx
+  namespace: iot-services
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: onepassword-connect
+  target:
+    name: emqx-secret
+    template:
+      engineVersion: v2
+      data:
+        EMQX_DASHBOARD__DEFAULT_USERNAME: "{{ .EMQX_DASHBOARD__DEFAULT_USERNAME }}"
+        EMQX_DASHBOARD__DEFAULT_PASSWORD: "{{ .EMQX_DASHBOARD__DEFAULT_PASSWORD }}"
+  dataFrom:
+    - extract:
+        key: emqx
+```
+
+This all seemed to work and wil be further tested once I set up emqx later:
+
+```
+thaynes@HaynesHyperion:~$ k describe secret -n iot-services emqx-secret
+Name:         emqx-secret
+Namespace:    iot-services
+Labels:       reconcile.external-secrets.io/created-by=432761e62965f5dfb77cc49e7a6d7120
+Annotations:  reconcile.external-secrets.io/data-hash: 25dfff24bc564e73bdc4589dd066e6e6
+
+Type:  Opaque
+
+Data
+====
+EMQX_DASHBOARD__DEFAULT_PASSWORD:  20 bytes
+EMQX_DASHBOARD__DEFAULT_USERNAME:  8 bytes
+```
