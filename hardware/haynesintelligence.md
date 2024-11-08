@@ -500,3 +500,86 @@ I updated the file-shareing plugin version but the rest were the latest already.
 Fortunatly no suprised were left. Once I logged into the nice web UI via `https://nas01.example:9090/` I was able to create users and shares as the guide suggested. Only thing not in the guide was giving users permission to write vs. just the shares owner. Once I did that I was able to copy an ISO into it super fast.
 
 ![new nas01 share]({{ site.url }}/images/windows/new-nas01-share.png)
+
+## NFS
+
+Following [this guide](https://linuxconfig.org/how-to-configure-nfs-on-linux) where I am just configuring it right on proxmox and skip all the hooplah. 
+
+Need to install NFS Server:
+
+```bash
+sudo apt install nfs-kernel-server
+sudo systemctl enable --now nfs-server
+```
+
+First find dirs to expose:
+
+```bash
+root@HaynesIntelligence:/tank# ls
+data_root  k8s_root
+```
+
+Make sure the premissions are right - in this case I am just giving nobody rw:
+
+```bash
+sudo chmod 755 /tank/data_root
+sudo chmod 755 /tank/k8s_root
+```
+
+Then edit `/etc/exports`:
+
+```bash
+root@HaynesIntelligence:/tank/k8s_root# sudo nano /etc/exports
+# /etc/exports: the access control list for filesystems which may be exported
+#               to NFS clients.  See exports(5).
+#
+# Example for NFSv2 and NFSv3:
+# /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)
+#
+# Example for NFSv4:
+# /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)
+# /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)
+#
+/tank/data_root     192.168.40.0/24(rw,sync,no_subtree_check)
+/tank/k8s_root      192.168.40.0/24(rw,sync,no_subtree_check)
+```
+
+Load it with `sudo exportfs -arv`. Now onto a test to mount it.
+
+May need to install nfs-common (proxmox seemed to have it though):
+
+```bash
+sudo apt install nfs-common
+```
+
+Make mount points:
+
+```bash
+root@pve04:~# cd /mnt
+root@pve04:/mnt# mkdir tank-data
+root@pve04:/mnt# mkdir tank-k8s
+```
+
+Now edit `/etc/fstab`:
+
+```bash
+# <file system> <mount point> <type> <options> <dump> <pass>
+/dev/pve/root / ext4 errors=remount-ro 0 1
+UUID=9FBD-64E7 /boot/efi vfat defaults 0 1
+/dev/pve/swap none swap sw 0 0
+proc /proc proc defaults 0 0
+
+# NFS added below this line
+HaynesIntelligence.haynesnetwork:/tank/data_root /mnt/tank-data nfs4 defaults,user,exec 0 0
+HaynesIntelligence.haynesnetwork:/tank/k8s_root /mnt/tank-k8s nfs4 defaults,user,exec 0 0
+```
+
+Now reload fstab using `sudo mount -a`. CD into each to verify permissions which may take some sorting:
+
+```bash
+root@pve04:/mnt/tank-data# ls
+Backups  Downloads  Incoming  LibGenMirror  LLM  Temp  Torrents
+
+root@pve04:/mnt/tank-k8s# ls
+data
+```

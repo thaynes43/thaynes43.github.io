@@ -263,3 +263,7 @@ Lots of progress with the dev container now. It is building as a github action a
 I had to add `"int128/kubelogin!!?as=kubectl-oidc_login&type=script" \` to what was installed in the container to access my cluster since it requires auth. However, omnictl is released with other binaries and `"siderolabs/omni!!?as=omnictl&type=script"` pulls the wrong binaries. I found [this PR](https://github.com/jpillora/installer/pull/45#issuecomment-2403866231) which would let me specify which binaries using that tool but it appears to have gone stale. This is lower priority for now as I want to move onto flux.
 
 Flux bootstrapping appears to require SOPS for handling it's dirty secrets. Next up we must dig in and understand wtf sops is.
+
+### Act 2 - Update 2
+
+devcontainer has omnictl now but no envvar for config and `Error: open /home/vscode/.config/omni/config: no such file or directory`. 

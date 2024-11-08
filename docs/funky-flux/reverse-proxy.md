@@ -66,6 +66,8 @@ I can't have this load balancer using the pool of IPs the family's stuff is on s
 
 [This post](https://www.reddit.com/r/UNIFI/comments/i6okrg/kubernetes_udm_pro_metallb_layer2_issues/) is old but looks relevant. I am going to try the [config change](https://stackoverflow.com/questions/56493651/enable-ipvs-mode-in-kube-proxy-on-a-ready-kubernetes-local-cluster/56497675#56497675) it references:
 
+> FOR TALOS YOU NEED A PATCH SIMILAR TO THIS https://github.com/siderolabs/talos/discussions/7835 
+
 ```
 KUBE_EDITOR=nano kubectl edit configmap kube-proxy -n kube-system
 mode: ipvs
@@ -366,7 +368,7 @@ Events:                  <none>
 Dashboard also broke..
 
 ```
-thaynes@kubevip:~/workspace$ kubectl port-forward $(kubectl get pods --selector "app.kubernetes.io/name=traefik" -n traefik --output=name) 9000:9000 -n traefik 
+thaynes@kubevip:~/workspace$ kubectl port-forward $(kubectl get pods --selector "app.kubernetes.io/name=traefik" -n network --output=name) 9000:9000 -n network 
 ```
 
 ```
@@ -513,14 +515,14 @@ Then creds for the dash:
 
 ```
 thaynes@kubevip:~/workspace/traefik$ htpasswd -nb thaynes REDACTED | openssl base64
-dGhheW5lczokYXByMSROdDJZWUo3TCRvRjN5L1o1Tmp5TXF3WG8wTC8yU2swCgo=
+REDACTED
 ```
 
 Now try another sealed secret:
 
 ```
 [default]
-users = dGhheW5lczokYXByMSROdDJZWUo3TCRvRjN5L1o1Tmp5TXF3WG8wTC8yU2swCgo=
+users = REDACTED
 ```
 
 ```bash

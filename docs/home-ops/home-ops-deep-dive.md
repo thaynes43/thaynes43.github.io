@@ -9,6 +9,13 @@ Finding other people's flux repos has shown me the way more than any tutorials c
 - kashalls https://github.com/kashalls/home-cluster
 - bjw-s https://github.com/bjw-s/home-ops 
 
+> New
+
+[kubesearch](https://kubesearch.dev/) has a ton!
+
+- [ahinko](https://github.com/ahinko/home-ops) looks good for readme
+- [rwlove](https://github.com/rwlove/home-ops/blob/main/kubernetes/main/apps/home/esphome/app/helmrelease.yaml) has a huge esphome setup  
+- [theshire](https://github.com/jahanson/theshire/tree/main) has ollama with an NVidia GPU!
 Or some templates:
 
 - https://github.com/techno-tim/k3s-ansible
