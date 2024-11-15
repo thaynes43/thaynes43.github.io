@@ -519,12 +519,18 @@ root@HaynesIntelligence:/tank# ls
 data_root  k8s_root
 ```
 
-Make sure the premissions are right - in this case I am just giving nobody rw:
+Make sure the premissions are right - this always gets fucked up:
 
 ```bash
 sudo chmod 755 /tank/data_root
 sudo chmod 755 /tank/k8s_root
 ```
+
+root@HaynesIntelligence:/tank# id -u nas
+101000
+root@HaynesIntelligence:/tank# getent group nas_shares
+nas_shares:x:110000:
+root@HaynesIntelligence:/tank#
 
 Then edit `/etc/exports`:
 
@@ -540,8 +546,8 @@ root@HaynesIntelligence:/tank/k8s_root# sudo nano /etc/exports
 # /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)
 # /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)
 #
-/tank/data_root     192.168.40.0/24(rw,sync,no_subtree_check)
-/tank/k8s_root      192.168.40.0/24(rw,sync,no_subtree_check)
+/tank/data_root     192.168.40.0/24(rw,sync,no_subtree_check,no_root_squash) # TODO for testing I used no_root_squash but I will work out permissions
+/tank/k8s_root      192.168.40.0/24(rw,sync,no_subtree_check,no_root_squash)
 ```
 
 Load it with `sudo exportfs -arv`. Now onto a test to mount it.
