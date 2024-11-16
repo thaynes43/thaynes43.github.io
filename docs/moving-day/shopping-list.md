@@ -103,6 +103,8 @@ Or maybe the [Combo with the little mouse](https://www.amazon.com/Razer-Wireless
 [Desk Counter Top](https://www.lowes.com/pd/Sparrow-Peak-FSC-Chevron-6-mm-6-ft-6-cm-6-in-x-30-in-x-1-5-in-Walnut-Stained-Straight-Acacia-Butcher-Block-Countertop/5013903825) from Loews. 
 
 
+6-ft x 30-in x 1.5-in 
+
 ### Cameras
 
 ### Smart Home
