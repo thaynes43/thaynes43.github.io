@@ -49,6 +49,10 @@ labnav:
         url: /lab-overview/
       - title: Backlog
         url: /backlog/
+      - title: Shopping
+        url: /docs/moving-day/shopping-list/
+      - title: Migration
+        url: /docs/moving-day/lab-migration/
 
 hardwarenav:
   - title: Hardware
