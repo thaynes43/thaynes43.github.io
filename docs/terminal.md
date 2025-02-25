@@ -54,7 +54,7 @@ Check the [krew docks](https://krew.sigs.k8s.io/docs/user-guide/setup/install/) 
 Then:
 
 ```bash
-# kubectl krew install oidc-login we are using homebrew for this now
+kubectl krew install oidc-login
 kubectl krew install whoami
 kubectl krew install browse-pvc
 ```
